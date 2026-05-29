@@ -5,7 +5,7 @@ using OrderSystem.Services;
 namespace OrderSystem.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/reports")]
 public sealed class ReportsController(OrderService orderService) : ControllerBase
 {
     private readonly OrderService _orderService = orderService;

@@ -6,7 +6,7 @@ using OrderSystem.Services;
 namespace OrderSystem.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/orders")]
 public sealed class OrdersController(OrderService orderService) : ControllerBase
 {
     private readonly OrderService _orderService = orderService;
@@ -39,7 +39,7 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         try
         {
             var order = await _orderService.CreateOrderAsync(request, cancellationToken);
-            return CreatedAtAction(nameof(Get), new { id = order.Id }, order);
+            return CreatedAtAction(nameof(Get), new { id = order.OrderId }, order);
         }
         catch (DomainException exception)
         {

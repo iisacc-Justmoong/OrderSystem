@@ -7,7 +7,7 @@ using OrderSystem.Models;
 namespace OrderSystem.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/customers")]
 public sealed class CustomersController(AppDbContext dbContext) : ControllerBase
 {
     private readonly AppDbContext _dbContext = dbContext;

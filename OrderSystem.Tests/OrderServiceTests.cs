@@ -48,14 +48,14 @@ public sealed class OrderServiceTests
         var statusHistory = await database.DbContext.OrderStatusHistories.SingleAsync();
         Assert.Null(statusHistory.FromStatus);
         Assert.Equal(OrderStatus.Pending, statusHistory.ToStatus);
-        Assert.Equal(order.Id, statusHistory.OrderId);
+        Assert.Equal(order.OrderId, statusHistory.OrderId);
 
         var inventoryTransaction = await database.DbContext.InventoryTransactions.SingleAsync();
         Assert.Equal(product.Id, inventoryTransaction.ProductId);
         Assert.Equal(-2, inventoryTransaction.QuantityChange);
         Assert.Equal(InventoryTransactionReason.OrderCreated, inventoryTransaction.Reason);
         Assert.Equal("Order", inventoryTransaction.ReferenceType);
-        Assert.Equal(order.Id, inventoryTransaction.ReferenceId);
+        Assert.Equal(order.OrderId, inventoryTransaction.ReferenceId);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class OrderServiceTests
             customer.Id,
             [new CreateOrderItemRequest(product.Id, 4)]));
 
-        var cancelled = await database.Service.CancelOrderAsync(created.Id);
+        var cancelled = await database.Service.CancelOrderAsync(created.OrderId);
 
         Assert.Equal(OrderStatus.Cancelled, cancelled.Status);
         Assert.Equal(6, await database.StockQuantityAsync(product.Id));
@@ -91,7 +91,7 @@ public sealed class OrderServiceTests
         var recoveryTransaction = await database.DbContext.InventoryTransactions
             .SingleAsync(transaction => transaction.Reason == InventoryTransactionReason.OrderCancelled);
         Assert.Equal(4, recoveryTransaction.QuantityChange);
-        Assert.Equal(created.Id, recoveryTransaction.ReferenceId);
+        Assert.Equal(created.OrderId, recoveryTransaction.ReferenceId);
 
         var cancellationHistory = await database.DbContext.OrderStatusHistories
             .SingleAsync(history => history.ToStatus == OrderStatus.Cancelled);
@@ -107,13 +107,13 @@ public sealed class OrderServiceTests
             customer.Id,
             [new CreateOrderItemRequest(product.Id, 2)]));
 
-        await database.Service.UpdateStatusAsync(created.Id, OrderStatus.Confirmed);
-        await database.Service.UpdateStatusAsync(created.Id, OrderStatus.Preparing);
-        await database.Service.UpdateStatusAsync(created.Id, OrderStatus.Shipped);
+        await database.Service.UpdateStatusAsync(created.OrderId, OrderStatus.Confirmed);
+        await database.Service.UpdateStatusAsync(created.OrderId, OrderStatus.Preparing);
+        await database.Service.UpdateStatusAsync(created.OrderId, OrderStatus.Shipped);
 
-        await Assert.ThrowsAsync<DomainException>(() => database.Service.CancelOrderAsync(created.Id));
+        await Assert.ThrowsAsync<DomainException>(() => database.Service.CancelOrderAsync(created.OrderId));
 
-        var storedOrder = await database.DbContext.Orders.SingleAsync(order => order.Id == created.Id);
+        var storedOrder = await database.DbContext.Orders.SingleAsync(order => order.Id == created.OrderId);
         Assert.Equal(OrderStatus.Shipped, storedOrder.Status);
         Assert.Equal(3, await database.StockQuantityAsync(product.Id));
     }
@@ -128,11 +128,11 @@ public sealed class OrderServiceTests
             [new CreateOrderItemRequest(product.Id, 1)]));
 
         var exception = await Assert.ThrowsAsync<DomainException>(() =>
-            database.Service.UpdateStatusAsync(created.Id, OrderStatus.Delivered));
+            database.Service.UpdateStatusAsync(created.OrderId, OrderStatus.Delivered));
 
         Assert.Contains("cannot move", exception.Message, StringComparison.OrdinalIgnoreCase);
 
-        var storedOrder = await database.DbContext.Orders.SingleAsync(order => order.Id == created.Id);
+        var storedOrder = await database.DbContext.Orders.SingleAsync(order => order.Id == created.OrderId);
         Assert.Equal(OrderStatus.Pending, storedOrder.Status);
     }
 
@@ -145,12 +145,12 @@ public sealed class OrderServiceTests
             customer.Id,
             [new CreateOrderItemRequest(product.Id, 1)]));
 
-        await database.Service.UpdateStatusAsync(created.Id, OrderStatus.Confirmed);
+        await database.Service.UpdateStatusAsync(created.OrderId, OrderStatus.Confirmed);
 
         var history = await database.DbContext.OrderStatusHistories
             .SingleAsync(history => history.FromStatus == OrderStatus.Pending
                                     && history.ToStatus == OrderStatus.Confirmed);
-        Assert.Equal(created.Id, history.OrderId);
+        Assert.Equal(created.OrderId, history.OrderId);
     }
 
     [Fact]
@@ -163,10 +163,10 @@ public sealed class OrderServiceTests
             [new CreateOrderItemRequest(product.Id, 2)]));
 
         var payment = await database.Service.RecordPaymentAsync(
-            created.Id,
+            created.OrderId,
             new CreatePaymentRequest(PaymentMethod.Card, PaymentStatus.Paid, 64m));
 
-        Assert.Equal(created.Id, payment.OrderId);
+        Assert.Equal(created.OrderId, payment.OrderId);
         Assert.Equal(PaymentMethod.Card, payment.PaymentMethod);
         Assert.Equal(PaymentStatus.Paid, payment.Status);
         Assert.Equal(64m, payment.Amount);

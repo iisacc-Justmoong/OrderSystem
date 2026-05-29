@@ -3,7 +3,7 @@ using OrderSystem.Models;
 namespace OrderSystem.DTOs;
 
 public sealed record OrderResponse(
-    long Id,
+    long OrderId,
     string OrderNumber,
     long CustomerId,
     string? CustomerName,

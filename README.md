@@ -7,7 +7,8 @@
 - ASP.NET Core Web API
 - Entity Framework Core
 - SQLite
-- xUnit 기반 서비스 테스트
+- Swagger
+- xUnit 기반 서비스 및 REST API 통합 테스트
 
 빌드 산출물과 중간 산출물은 저장소 루트의 `build/` 아래에 생성되도록 `Directory.Build.props`에서 고정한다.
 
@@ -42,7 +43,13 @@ Pending -> Confirmed -> Preparing -> Shipped -> Delivered
 
 - `GET /api/products`: 상품 목록 조회
 - `POST /api/products`: 상품 및 초기 재고 등록
+- `GET /api/products/{id}`: 상품 단건 조회
+- `PUT /api/products/{id}`: 상품 정보 수정
 - `POST /api/customers`: 고객 등록
+- `GET /api/customers/{id}`: 고객 단건 조회
+- `GET /api/inventory`: 재고 목록 조회
+- `GET /api/inventory/{productId}`: 상품별 재고 조회
+- `POST /api/inventory/{productId}/adjust`: 수동 재고 조정
 - `GET /api/orders`: 주문 목록 조회, `status`, `from`, `to` 쿼리 지원
 - `GET /api/orders/{id}`: 주문 단건 조회
 - `POST /api/orders`: 주문 생성
@@ -53,6 +60,8 @@ Pending -> Confirmed -> Preparing -> Shipped -> Delivered
 - `GET /api/reports/daily-sales?from=2026-05-01&to=2026-05-29`: 일별 매출 조회
 
 SQL Server 기준 스키마는 [Docs/schema.sql](Docs/schema.sql)에 정리되어 있다. 애플리케이션은 로컬 실행 편의를 위해 SQLite를 사용하지만, EF Core 매핑은 `BIGINT`, `DECIMAL(18,2)`, 정수 enum 저장, 인덱스, 체크 제약을 기준으로 구성한다.
+
+REST API 세부 계약은 [Docs/rest-api.md](Docs/rest-api.md)에 정리되어 있다. 서버 실행 후 Swagger UI는 `/swagger`에서 확인한다.
 
 ## 주문 생성 예시
 

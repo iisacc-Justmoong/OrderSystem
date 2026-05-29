@@ -183,7 +183,7 @@ public sealed class OrderService(AppDbContext dbContext)
         var previousStatus = order.Status;
         if (!CanTransition(previousStatus, nextStatus))
         {
-            throw new DomainException($"Order cannot move from {order.Status} to {nextStatus}.");
+            throw new DomainException($"Order cannot move from {order.Status} to {nextStatus}.", 409);
         }
 
         order.Status = nextStatus;
@@ -218,7 +218,7 @@ public sealed class OrderService(AppDbContext dbContext)
 
         if (order.Status is not (OrderStatus.Pending or OrderStatus.Confirmed))
         {
-            throw new DomainException($"Order {id} cannot be cancelled after {order.Status}.");
+            throw new DomainException($"Order {id} cannot be cancelled after {order.Status}.", 409);
         }
 
         var now = DateTime.UtcNow;
