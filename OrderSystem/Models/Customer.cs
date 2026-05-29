@@ -2,7 +2,7 @@ namespace OrderSystem.Models;
 
 public sealed class Customer
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     public required string Name { get; set; }
 

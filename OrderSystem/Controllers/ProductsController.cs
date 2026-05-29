@@ -23,8 +23,8 @@ public sealed class ProductsController(AppDbContext dbContext) : ControllerBase
         return Ok(products.Select(product => product.ToResponse()).ToList());
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<ProductResponse>> Get(int id, CancellationToken cancellationToken)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<ProductResponse>> Get(long id, CancellationToken cancellationToken)
     {
         var product = await _dbContext.Products
             .Include(product => product.Inventory)
@@ -40,9 +40,12 @@ public sealed class ProductsController(AppDbContext dbContext) : ControllerBase
         CreateProductRequest request,
         CancellationToken cancellationToken)
     {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
         var now = DateTime.UtcNow;
         var product = new Product
         {
+            Sku = request.Sku,
             Name = request.Name,
             Description = request.Description,
             Price = request.Price,
@@ -57,6 +60,22 @@ public sealed class ProductsController(AppDbContext dbContext) : ControllerBase
 
         _dbContext.Products.Add(product);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (request.InitialStockQuantity > 0)
+        {
+            _dbContext.InventoryTransactions.Add(new InventoryTransaction
+            {
+                ProductId = product.Id,
+                QuantityChange = request.InitialStockQuantity,
+                Reason = InventoryTransactionReason.StockReceived,
+                ReferenceType = "Product",
+                ReferenceId = product.Id,
+                CreatedAt = now
+            });
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
 
         var response = product.ToResponse();
         return CreatedAtAction(nameof(Get), new { id = product.Id }, response);

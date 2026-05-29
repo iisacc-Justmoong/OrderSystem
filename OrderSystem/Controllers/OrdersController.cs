@@ -22,8 +22,8 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         return Ok(orders);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<OrderResponse>> Get(int id, CancellationToken cancellationToken)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<OrderResponse>> Get(long id, CancellationToken cancellationToken)
     {
         var order = await _orderService.GetOrderAsync(id, cancellationToken);
         return order is null
@@ -47,9 +47,9 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         }
     }
 
-    [HttpPatch("{id:int}/status")]
+    [HttpPatch("{id:long}/status")]
     public async Task<ActionResult<OrderResponse>> UpdateStatus(
-        int id,
+        long id,
         UpdateOrderStatusRequest request,
         CancellationToken cancellationToken)
     {
@@ -64,13 +64,46 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         }
     }
 
-    [HttpPost("{id:int}/cancel")]
-    public async Task<ActionResult<OrderResponse>> Cancel(int id, CancellationToken cancellationToken)
+    [HttpPost("{id:long}/cancel")]
+    public async Task<ActionResult<OrderResponse>> Cancel(long id, CancellationToken cancellationToken)
     {
         try
         {
             var order = await _orderService.CancelOrderAsync(id, cancellationToken);
             return Ok(order);
+        }
+        catch (DomainException exception)
+        {
+            return ToProblem(exception);
+        }
+    }
+
+    [HttpGet("{id:long}/payments")]
+    public async Task<ActionResult<IReadOnlyList<PaymentResponse>>> ListPayments(
+        long id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var payments = await _orderService.ListPaymentsAsync(id, cancellationToken);
+            return Ok(payments);
+        }
+        catch (DomainException exception)
+        {
+            return ToProblem(exception);
+        }
+    }
+
+    [HttpPost("{id:long}/payments")]
+    public async Task<ActionResult<PaymentResponse>> RecordPayment(
+        long id,
+        CreatePaymentRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var payment = await _orderService.RecordPaymentAsync(id, request, cancellationToken);
+            return CreatedAtAction(nameof(ListPayments), new { id }, payment);
         }
         catch (DomainException exception)
         {

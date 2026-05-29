@@ -8,12 +8,14 @@ public static class DtoMapping
     {
         return new ProductResponse(
             product.Id,
+            product.Sku,
             product.Name,
             product.Description,
             product.Price,
             product.IsActive,
             product.Inventory?.Quantity ?? 0,
-            product.CreatedAt);
+            product.CreatedAt,
+            product.UpdatedAt);
     }
 
     public static CustomerResponse ToResponse(this Customer customer)
@@ -30,6 +32,7 @@ public static class DtoMapping
     {
         return new OrderResponse(
             order.Id,
+            order.OrderNumber,
             order.CustomerId,
             order.Customer?.Name,
             order.Status,
@@ -45,5 +48,17 @@ public static class DtoMapping
                     item.UnitPrice,
                     item.LineTotal))
                 .ToList());
+    }
+
+    public static PaymentResponse ToResponse(this Payment payment)
+    {
+        return new PaymentResponse(
+            payment.Id,
+            payment.OrderId,
+            payment.PaymentMethod,
+            payment.Status,
+            payment.Amount,
+            payment.PaidAt,
+            payment.CreatedAt);
     }
 }

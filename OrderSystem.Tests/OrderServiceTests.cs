@@ -239,7 +239,7 @@ public sealed class OrderServiceTests
             return (customer, product);
         }
 
-        public Task<int> StockQuantityAsync(int productId)
+        public Task<int> StockQuantityAsync(long productId)
         {
             return DbContext.Inventories
                 .Where(inventory => inventory.ProductId == productId)

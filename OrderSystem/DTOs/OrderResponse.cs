@@ -3,8 +3,9 @@ using OrderSystem.Models;
 namespace OrderSystem.DTOs;
 
 public sealed record OrderResponse(
-    int Id,
-    int CustomerId,
+    long Id,
+    string OrderNumber,
+    long CustomerId,
     string? CustomerName,
     OrderStatus Status,
     decimal TotalAmount,
@@ -13,7 +14,7 @@ public sealed record OrderResponse(
     IReadOnlyList<OrderItemResponse> Items);
 
 public sealed record OrderItemResponse(
-    int ProductId,
+    long ProductId,
     string? ProductName,
     int Quantity,
     decimal UnitPrice,

@@ -12,8 +12,8 @@ public sealed class CustomersController(AppDbContext dbContext) : ControllerBase
 {
     private readonly AppDbContext _dbContext = dbContext;
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<CustomerResponse>> Get(int id, CancellationToken cancellationToken)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<CustomerResponse>> Get(long id, CancellationToken cancellationToken)
     {
         var customer = await _dbContext.Customers.FindAsync([id], cancellationToken);
         return customer is null

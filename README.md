@@ -1,6 +1,6 @@
 # Retail Order System
 
-소매 주문 처리 업무 흐름을 검증하기 위한 ASP.NET Core Web API 프로젝트다. 쇼핑몰 화면보다 주문 생성, 재고 차감, 상태 전이, 취소 시 재고 복구 같은 업무 데이터 정합성에 초점을 둔다.
+소매 주문 처리 업무 흐름을 검증하기 위한 ASP.NET Core Web API 프로젝트다. 쇼핑몰 화면보다 주문 생성, 재고 차감, 상태 전이, 결제 장부, 취소 시 재고 복구 같은 업무 데이터 정합성에 초점을 둔다.
 
 ## 기술 구성
 
@@ -13,17 +13,20 @@
 
 ## 핵심 도메인
 
-- `Product`: 이름, 설명, 가격, 판매 여부를 가진 상품이다.
+- `Product`: SKU, 이름, 설명, 현재 가격, 판매 여부를 가진 상품 마스터다.
 - `Customer`: 주문을 생성하는 고객이다.
 - `Inventory`: 상품별 현재 재고 수량이다.
+- `InventoryTransaction`: 입고, 주문 차감, 취소 복구 같은 재고 변동 이력이다.
 - `Order`: 고객, 상태, 총액, 생성/수정 시각을 가진 주문 단위다.
 - `OrderItem`: 주문 시점의 상품, 수량, 단가, 줄 합계를 보존하는 주문 행이다.
+- `OrderStatusHistory`: 주문 상태가 언제, 어떤 상태에서 어떤 상태로 바뀌었는지 남기는 이력이다.
+- `Payment`: 주문과 분리된 결제 방법, 결제 상태, 결제 금액 장부다.
 
 `OrderItem.UnitPrice`는 현재 상품 가격이 아니라 주문 생성 시점의 가격 스냅샷이다. 상품 가격이 이후 변경되어도 과거 주문 금액은 바뀌지 않는다.
 
 ## 주문 규칙
 
-주문 생성은 고객 존재 여부, 상품 활성 상태, 재고 수량을 검증한 뒤 처리한다. 주문 생성, 주문 항목 저장, 재고 차감은 하나의 DB 트랜잭션 안에서 실행한다.
+주문 생성은 고객 존재 여부, 상품 활성 상태, 재고 수량을 검증한 뒤 처리한다. 주문 생성, 주문 항목 저장, 재고 차감, 재고 이력 저장, 주문 상태 이력 저장은 하나의 DB 트랜잭션 안에서 실행한다.
 
 상태 전이는 다음 흐름만 허용한다.
 
@@ -31,7 +34,9 @@
 Pending -> Confirmed -> Preparing -> Shipped -> Delivered
 ```
 
-취소는 `Pending`, `Confirmed` 상태에서만 허용한다. 취소가 성공하면 주문 상태를 `Cancelled`로 변경하고 주문 항목 수량만큼 재고를 복구한다. 이 처리도 트랜잭션 안에서 실행한다.
+취소는 `Pending`, `Confirmed` 상태에서만 허용한다. 취소가 성공하면 주문 상태를 `Cancelled`로 변경하고 주문 항목 수량만큼 재고를 복구한다. 이때 `InventoryTransactions`에는 양수 복구 이력을, `OrderStatusHistories`에는 취소 상태 전이를 남긴다.
+
+재고 차감은 `Quantity >= 주문수량` 조건을 포함한 업데이트로 처리한다. 동시에 두 주문이 들어와도 재고 부족 시 업데이트 행 수가 0이 되므로 과판매를 막을 수 있다.
 
 ## 주요 API
 
@@ -43,7 +48,11 @@ Pending -> Confirmed -> Preparing -> Shipped -> Delivered
 - `POST /api/orders`: 주문 생성
 - `PATCH /api/orders/{id}/status`: 주문 상태 변경
 - `POST /api/orders/{id}/cancel`: 주문 취소
+- `GET /api/orders/{id}/payments`: 주문 결제 목록 조회
+- `POST /api/orders/{id}/payments`: 주문 결제 장부 기록
 - `GET /api/reports/daily-sales?from=2026-05-01&to=2026-05-29`: 일별 매출 조회
+
+SQL Server 기준 스키마는 [Docs/schema.sql](Docs/schema.sql)에 정리되어 있다. 애플리케이션은 로컬 실행 편의를 위해 SQLite를 사용하지만, EF Core 매핑은 `BIGINT`, `DECIMAL(18,2)`, 정수 enum 저장, 인덱스, 체크 제약을 기준으로 구성한다.
 
 ## 주문 생성 예시
 

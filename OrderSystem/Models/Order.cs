@@ -2,9 +2,11 @@ namespace OrderSystem.Models;
 
 public sealed class Order
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
-    public int CustomerId { get; set; }
+    public required string OrderNumber { get; set; }
+
+    public long CustomerId { get; set; }
 
     public Customer? Customer { get; set; }
 
@@ -17,4 +19,8 @@ public sealed class Order
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public List<OrderItem> Items { get; set; } = [];
+
+    public List<OrderStatusHistory> StatusHistories { get; set; } = [];
+
+    public List<Payment> Payments { get; set; } = [];
 }

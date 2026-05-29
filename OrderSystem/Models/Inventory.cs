@@ -2,9 +2,7 @@ namespace OrderSystem.Models;
 
 public sealed class Inventory
 {
-    public int Id { get; set; }
-
-    public int ProductId { get; set; }
+    public long ProductId { get; set; }
 
     public Product? Product { get; set; }
 

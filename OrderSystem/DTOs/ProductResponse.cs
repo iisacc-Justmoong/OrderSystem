@@ -1,10 +1,12 @@
 namespace OrderSystem.DTOs;
 
 public sealed record ProductResponse(
-    int Id,
+    long Id,
+    string Sku,
     string Name,
-    string Description,
+    string? Description,
     decimal Price,
     bool IsActive,
     int StockQuantity,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    DateTime? UpdatedAt);

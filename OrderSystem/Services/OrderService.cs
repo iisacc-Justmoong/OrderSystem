@@ -47,7 +47,7 @@ public sealed class OrderService(AppDbContext dbContext)
 
         var productIds = requestedItems.Select(item => item.ProductId).ToArray();
         var products = await _dbContext.Products
-            .Include(product => product.Inventory)
+            .AsNoTracking()
             .Where(product => productIds.Contains(product.Id))
             .ToDictionaryAsync(product => product.Id, cancellationToken);
 
@@ -59,6 +59,7 @@ public sealed class OrderService(AppDbContext dbContext)
         var now = DateTime.UtcNow;
         var order = new Order
         {
+            OrderNumber = CreateOrderNumber(now),
             CustomerId = customer.Id,
             Customer = customer,
             Status = OrderStatus.Pending,
@@ -74,24 +75,21 @@ public sealed class OrderService(AppDbContext dbContext)
                 throw new DomainException($"Product {product.Id} is not active.");
             }
 
-            if (product.Inventory is null)
-            {
-                throw new DomainException($"Product {product.Id} has no inventory record.");
-            }
-
-            if (product.Inventory.Quantity < requestedItem.Quantity)
+            var updatedRows = await _dbContext.Inventories
+                .Where(inventory => inventory.ProductId == product.Id
+                                    && inventory.Quantity >= requestedItem.Quantity)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(inventory => inventory.Quantity, inventory => inventory.Quantity - requestedItem.Quantity)
+                    .SetProperty(inventory => inventory.UpdatedAt, now), cancellationToken);
+            if (updatedRows == 0)
             {
                 throw new DomainException($"Product {product.Id} does not have enough stock.");
             }
-
-            product.Inventory.Quantity -= requestedItem.Quantity;
-            product.Inventory.UpdatedAt = now;
 
             var lineTotal = product.Price * requestedItem.Quantity;
             order.Items.Add(new OrderItem
             {
                 ProductId = product.Id,
-                Product = product,
                 Quantity = requestedItem.Quantity,
                 UnitPrice = product.Price,
                 LineTotal = lineTotal
@@ -101,12 +99,36 @@ public sealed class OrderService(AppDbContext dbContext)
 
         _dbContext.Orders.Add(order);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _dbContext.OrderStatusHistories.Add(new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            FromStatus = null,
+            ToStatus = OrderStatus.Pending,
+            Reason = "Order created",
+            CreatedAt = now
+        });
+
+        foreach (var item in order.Items)
+        {
+            _dbContext.InventoryTransactions.Add(new InventoryTransaction
+            {
+                ProductId = item.ProductId,
+                QuantityChange = -item.Quantity,
+                Reason = InventoryTransactionReason.OrderCreated,
+                ReferenceType = "Order",
+                ReferenceId = order.Id,
+                CreatedAt = now
+            });
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return order.ToResponse();
+        return await GetRequiredOrderResponseAsync(order.Id, cancellationToken);
     }
 
-    public async Task<OrderResponse?> GetOrderAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<OrderResponse?> GetOrderAsync(long id, CancellationToken cancellationToken = default)
     {
         var order = await IncludeOrderGraph(_dbContext.Orders)
             .FirstOrDefaultAsync(order => order.Id == id, cancellationToken);
@@ -145,7 +167,7 @@ public sealed class OrderService(AppDbContext dbContext)
     }
 
     public async Task<OrderResponse> UpdateStatusAsync(
-        int id,
+        long id,
         OrderStatus nextStatus,
         CancellationToken cancellationToken = default)
     {
@@ -158,21 +180,32 @@ public sealed class OrderService(AppDbContext dbContext)
             throw new DomainException($"Order {id} was not found.", 404);
         }
 
-        if (!CanTransition(order.Status, nextStatus))
+        var previousStatus = order.Status;
+        if (!CanTransition(previousStatus, nextStatus))
         {
             throw new DomainException($"Order cannot move from {order.Status} to {nextStatus}.");
         }
 
         order.Status = nextStatus;
-        order.UpdatedAt = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        order.UpdatedAt = now;
+
+        _dbContext.OrderStatusHistories.Add(new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            FromStatus = previousStatus,
+            ToStatus = nextStatus,
+            Reason = "Status updated",
+            CreatedAt = now
+        });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return order.ToResponse();
+        return await GetRequiredOrderResponseAsync(order.Id, cancellationToken);
     }
 
-    public async Task<OrderResponse> CancelOrderAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<OrderResponse> CancelOrderAsync(long id, CancellationToken cancellationToken = default)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
@@ -188,30 +221,96 @@ public sealed class OrderService(AppDbContext dbContext)
             throw new DomainException($"Order {id} cannot be cancelled after {order.Status}.");
         }
 
-        var productIds = order.Items.Select(item => item.ProductId).ToArray();
-        var inventories = await _dbContext.Inventories
-            .Where(inventory => productIds.Contains(inventory.ProductId))
-            .ToDictionaryAsync(inventory => inventory.ProductId, cancellationToken);
-
         var now = DateTime.UtcNow;
         foreach (var item in order.Items)
         {
-            if (!inventories.TryGetValue(item.ProductId, out var inventory))
+            var updatedRows = await _dbContext.Inventories
+                .Where(inventory => inventory.ProductId == item.ProductId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(inventory => inventory.Quantity, inventory => inventory.Quantity + item.Quantity)
+                    .SetProperty(inventory => inventory.UpdatedAt, now), cancellationToken);
+            if (updatedRows == 0)
             {
                 throw new DomainException($"Product {item.ProductId} has no inventory record.");
             }
 
-            inventory.Quantity += item.Quantity;
-            inventory.UpdatedAt = now;
+            _dbContext.InventoryTransactions.Add(new InventoryTransaction
+            {
+                ProductId = item.ProductId,
+                QuantityChange = item.Quantity,
+                Reason = InventoryTransactionReason.OrderCancelled,
+                ReferenceType = "Order",
+                ReferenceId = order.Id,
+                CreatedAt = now
+            });
         }
 
+        var previousStatus = order.Status;
         order.Status = OrderStatus.Cancelled;
         order.UpdatedAt = now;
+
+        _dbContext.OrderStatusHistories.Add(new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            FromStatus = previousStatus,
+            ToStatus = OrderStatus.Cancelled,
+            Reason = "Order cancelled",
+            CreatedAt = now
+        });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return order.ToResponse();
+        return await GetRequiredOrderResponseAsync(order.Id, cancellationToken);
+    }
+
+    public async Task<PaymentResponse> RecordPaymentAsync(
+        long orderId,
+        CreatePaymentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var order = await _dbContext.Orders.FindAsync([orderId], cancellationToken);
+        if (order is null)
+        {
+            throw new DomainException($"Order {orderId} was not found.", 404);
+        }
+
+        var now = DateTime.UtcNow;
+        var payment = new Payment
+        {
+            OrderId = order.Id,
+            PaymentMethod = request.PaymentMethod,
+            Status = request.Status,
+            Amount = request.Amount,
+            PaidAt = request.Status == PaymentStatus.Paid ? now : null,
+            CreatedAt = now
+        };
+
+        _dbContext.Payments.Add(payment);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return payment.ToResponse();
+    }
+
+    public async Task<IReadOnlyList<PaymentResponse>> ListPaymentsAsync(
+        long orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var orderExists = await _dbContext.Orders.AnyAsync(order => order.Id == orderId, cancellationToken);
+        if (!orderExists)
+        {
+            throw new DomainException($"Order {orderId} was not found.", 404);
+        }
+
+        var payments = await _dbContext.Payments
+            .Where(payment => payment.OrderId == orderId)
+            .OrderBy(payment => payment.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return payments.Select(payment => payment.ToResponse()).ToList();
     }
 
     public async Task<IReadOnlyList<DailySalesResponse>> GetDailySalesAsync(
@@ -248,6 +347,17 @@ public sealed class OrderService(AppDbContext dbContext)
     {
         return AllowedTransitions.TryGetValue(currentStatus, out var allowedStatuses)
             && allowedStatuses.Contains(nextStatus);
+    }
+
+    private async Task<OrderResponse> GetRequiredOrderResponseAsync(long id, CancellationToken cancellationToken)
+    {
+        return await GetOrderAsync(id, cancellationToken)
+            ?? throw new DomainException($"Order {id} was not found.", 404);
+    }
+
+    private static string CreateOrderNumber(DateTime now)
+    {
+        return $"ORD-{now:yyyyMMddHHmmssfff}-{Guid.NewGuid().ToString("N")[..8]}";
     }
 
     private static IQueryable<Order> IncludeOrderGraph(IQueryable<Order> orders)
