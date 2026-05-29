@@ -1,0 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace OrderSystem.DTOs;
+
+public sealed record CreateProductRequest(
+    [Required, StringLength(160)] string Name,
+    [StringLength(1000)] string Description,
+    [Range(typeof(decimal), "0.01", "999999999")] decimal Price,
+    bool IsActive,
+    [Range(0, int.MaxValue)] int InitialStockQuantity);

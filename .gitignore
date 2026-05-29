@@ -1,0 +1,9 @@
+bin/
+obj/
+/build/
+*.db
+*.db-shm
+*.db-wal
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
