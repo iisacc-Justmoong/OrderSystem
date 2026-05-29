@@ -6,6 +6,7 @@
 
 - ASP.NET Core Web API
 - Entity Framework Core
+- SQL Server setup scripts
 - SQLite
 - Swagger
 - xUnit 기반 서비스 및 REST API 통합 테스트
@@ -59,7 +60,7 @@ Pending -> Confirmed -> Preparing -> Shipped -> Delivered
 - `POST /api/orders/{id}/payments`: 주문 결제 장부 기록
 - `GET /api/reports/daily-sales?from=2026-05-01&to=2026-05-29`: 일별 매출 조회
 
-SQL Server 기준 스키마는 [Docs/schema.sql](Docs/schema.sql)에 정리되어 있다. 애플리케이션은 로컬 실행 편의를 위해 SQLite를 사용하지만, EF Core 매핑은 `BIGINT`, `DECIMAL(18,2)`, 정수 enum 저장, 인덱스, 체크 제약을 기준으로 구성한다.
+SQL Server 기준 DB 재현 스크립트는 [database/README.md](database/README.md)에 정리되어 있다. `01_schema.sql`, `02_sample-data.sql`, `03_procedures.sql`, `04_reports.sql` 순서로 실행하면 테이블, 시연 데이터, 저장 프로시저, 리포트 쿼리를 확인할 수 있다. 면접 설명용 답변은 [database/INTERVIEW_NOTES.md](database/INTERVIEW_NOTES.md)에 정리했다. 애플리케이션은 로컬 실행 편의를 위해 SQLite를 사용하지만, SQL 산출물은 면접 시연용 SQL Server 기준으로 둔다.
 
 REST API 세부 계약은 [Docs/rest-api.md](Docs/rest-api.md)에 정리되어 있다. 서버 실행 후 Swagger UI는 `/swagger`에서 확인한다.
 
