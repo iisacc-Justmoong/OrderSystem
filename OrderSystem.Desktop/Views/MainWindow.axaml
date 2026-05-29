@@ -1,0 +1,162 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OrderSystem.Desktop.ViewModels"
+        x:Class="OrderSystem.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Width="1120"
+        Height="720"
+        MinWidth="920"
+        MinHeight="600"
+        Background="#F4F6F8">
+  <Grid RowDefinitions="64,*">
+    <Border Background="#FFFFFF"
+            BorderBrush="#D8DEE6"
+            BorderThickness="0,0,0,1"
+            Padding="20,0">
+      <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Left"
+                    VerticalAlignment="Center"
+                    Spacing="2">
+          <TextBlock Text="{Binding Title}"
+                     FontSize="20"
+                     FontWeight="SemiBold"
+                     Foreground="#111827" />
+          <TextBlock Text="{Binding WorkspaceTitle}"
+                     FontSize="12"
+                     Foreground="#64748B" />
+        </StackPanel>
+        <TextBlock Text="{Binding ApiBaseUrl}"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   FontSize="13"
+                   Foreground="#475569" />
+      </DockPanel>
+    </Border>
+
+    <Grid Grid.Row="1"
+          ColumnDefinitions="420,*"
+          ColumnSpacing="18"
+          Margin="18">
+      <Border Background="#FFFFFF"
+              BorderBrush="#D8DEE6"
+              BorderThickness="1"
+              CornerRadius="6"
+              Padding="18">
+        <Grid RowDefinitions="Auto,*,Auto"
+              RowSpacing="14">
+          <StackPanel Spacing="4">
+            <TextBlock Text="{Binding OperationConsoleTitle}"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#111827" />
+            <TextBlock Text="Choose a REST operation and stage its request body."
+                       FontSize="12"
+                       Foreground="#64748B" />
+          </StackPanel>
+
+          <Grid Grid.Row="1"
+                RowDefinitions="190,*"
+                RowSpacing="12">
+            <ListBox ItemsSource="{Binding Operations}"
+                     SelectedItem="{Binding SelectedOperation}"
+                     Background="#F8FAFC"
+                     BorderBrush="#D8DEE6"
+                     BorderThickness="1"
+                     CornerRadius="4">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ConsoleOperationViewModel">
+                  <Grid ColumnDefinitions="96,*"
+                        Height="38"
+                        Margin="4">
+                    <TextBlock Text="{Binding Method}"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Foreground="#0369A1" />
+                    <StackPanel Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Spacing="1">
+                      <TextBlock Text="{Binding Name}"
+                                 FontSize="13"
+                                 Foreground="#111827" />
+                      <TextBlock Text="{Binding Path}"
+                                 FontSize="11"
+                                 Foreground="#64748B" />
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Grid Grid.Row="1"
+                  RowDefinitions="Auto,*"
+                  RowSpacing="6">
+              <TextBlock Text="Request Body"
+                         FontSize="12"
+                         Foreground="#475569" />
+              <TextBox Grid.Row="1"
+                       Text="{Binding RequestBody}"
+                       AcceptsReturn="True"
+                       TextWrapping="Wrap"
+                       FontFamily="Menlo,Consolas,monospace"
+                       FontSize="13"
+                       Background="#0F172A"
+                       Foreground="#E2E8F0"
+                       BorderThickness="0"
+                       Padding="12"
+                       MinHeight="220" />
+            </Grid>
+          </Grid>
+
+          <Grid Grid.Row="2"
+                ColumnDefinitions="*,Auto"
+                ColumnSpacing="10">
+            <Button Content="Stage Operation"
+                    Command="{Binding ExecuteSelectedOperationCommand}"
+                    MinHeight="36" />
+            <Button Grid.Column="1"
+                    Content="Clear Output"
+                    Command="{Binding ClearOutputCommand}"
+                    MinHeight="36"
+                    MinWidth="108" />
+          </Grid>
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="1"
+              Background="#0B1120"
+              BorderBrush="#1E293B"
+              BorderThickness="1"
+              CornerRadius="6"
+              Padding="18">
+        <Grid RowDefinitions="Auto,*"
+              RowSpacing="12">
+          <DockPanel LastChildFill="True">
+            <StackPanel DockPanel.Dock="Left"
+                        Spacing="4">
+              <TextBlock Text="{Binding OutputConsoleTitle}"
+                         FontSize="18"
+                         FontWeight="SemiBold"
+                         Foreground="#F8FAFC" />
+              <TextBlock Text="Staged operation output and API execution log."
+                         FontSize="12"
+                         Foreground="#94A3B8" />
+            </StackPanel>
+          </DockPanel>
+
+          <TextBox Grid.Row="1"
+                   Text="{Binding OutputText}"
+                   AcceptsReturn="True"
+                   IsReadOnly="True"
+                   TextWrapping="Wrap"
+                   FontFamily="Menlo,Consolas,monospace"
+                   FontSize="13"
+                   Background="#020617"
+                   Foreground="#D1FAE5"
+                   BorderThickness="0"
+                   Padding="14" />
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

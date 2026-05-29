@@ -5,6 +5,7 @@
 ## 기술 구성
 
 - ASP.NET Core Web API
+- Avalonia desktop shell
 - Entity Framework Core
 - SQL Server setup scripts
 - SQLite
@@ -63,6 +64,9 @@ Pending -> Confirmed -> Preparing -> Shipped -> Delivered
 SQL Server 기준 DB 재현 스크립트는 [database/README.md](database/README.md)에 정리되어 있다. `01_schema.sql`, `02_sample-data.sql`, `03_procedures.sql`, `04_reports.sql` 순서로 실행하면 테이블, 시연 데이터, 저장 프로시저, 리포트 쿼리를 확인할 수 있다. 면접 설명용 답변은 [database/INTERVIEW_NOTES.md](database/INTERVIEW_NOTES.md)에 정리했다. 애플리케이션은 로컬 실행 편의를 위해 SQLite를 사용하지만, SQL 산출물은 면접 시연용 SQL Server 기준으로 둔다.
 
 REST API 세부 계약은 [Docs/rest-api.md](Docs/rest-api.md)에 정리되어 있다. 서버 실행 후 Swagger UI는 `/swagger`에서 확인한다.
+
+Avalonia GUI 준비 내용은 [Docs/gui.md](Docs/gui.md)에 정리되어 있다. `OrderSystem.Desktop`은 REST API와 연결할 데스크톱 셸, 메인 윈도우, ViewModel 구조를 포함한다.
+솔루션의 첫 프로젝트는 `OrderSystem.Desktop`으로 배치해 기본 실행 진입점 후보가 GUI 앱이 되도록 했다.
 
 ## 주문 생성 예시
 

@@ -19,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\OrderSystem.Desktop\OrderSystem.Desktop.csproj" />
         <ProjectReference Include="..\OrderSystem\OrderSystem.csproj" />
     </ItemGroup>
 
