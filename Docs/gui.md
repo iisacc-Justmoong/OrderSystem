@@ -34,6 +34,8 @@ The local environment currently uses the Rider bundled .NET SDK:
 /Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet run --project OrderSystem.Desktop/OrderSystem.Desktop.csproj
 ```
 
+The project still targets `net8.0`, but `Directory.Build.props` sets runtime roll-forward to `Major`. After rebuilding into `build/`, direct app-host execution can use the local .NET 9 runtime when the .NET 8 runtime is not installed under `/Users/ymy/.dotnet`.
+
 The desktop shell defaults to `http://localhost:5000` as the API base URL. The existing ASP.NET Core API can be run separately and later wired into typed API clients from the desktop project.
 
 ## Verification

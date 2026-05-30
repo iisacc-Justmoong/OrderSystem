@@ -3,5 +3,6 @@
         <BaseOutputPath>$(MSBuildThisFileDirectory)build/bin/</BaseOutputPath>
         <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)build/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
         <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**;../build/**</DefaultItemExcludes>
+        <RollForward>Major</RollForward>
     </PropertyGroup>
 </Project>

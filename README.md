@@ -13,6 +13,7 @@
 - xUnit 기반 서비스 및 REST API 통합 테스트
 
 빌드 산출물과 중간 산출물은 저장소 루트의 `build/` 아래에 생성되도록 `Directory.Build.props`에서 고정한다.
+프로젝트의 대상 프레임워크는 `net8.0`이다. 다만 로컬 `.dotnet` 경로에 .NET 9 런타임만 설치된 환경에서도 `build/bin/Debug/net8.0/`의 앱 호스트를 직접 실행할 수 있도록 런타임 롤포워드는 `Major`로 둔다.
 
 ## 핵심 도메인
 
@@ -105,3 +106,5 @@ dotnet build OrderSystem.sln
 /Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet test OrderSystem.sln
 /Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet build OrderSystem.sln
 ```
+
+`/Users/ymy/.dotnet`에 .NET 9 런타임만 있는 상태에서 기존 `net8.0` 앱 호스트가 exit code 150으로 종료되면, 위 Rider 번들 SDK로 다시 빌드한다. 재빌드된 `runtimeconfig.json`에는 `rollForward: Major`가 포함되어 .NET 9 호스트에서도 로컬 실행이 가능하다.
