@@ -1,46 +1,47 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
 using System.Windows.Input;
 
 namespace OrderSystem.Desktop.ViewModels;
 
 public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
-    private readonly List<StoreProduct> _catalog = CreateCatalog();
-    private readonly List<CartLine> _cart = [];
-    private readonly List<StoreOrder> _orders = [];
-    private readonly List<string> _activity = [];
+    private readonly List<StoreOrderViewModel> _orders = [];
     private int _nextOrderNumber = 1001;
-    private ConsoleOperationViewModel? _selectedOperation;
-    private string _apiBaseUrl;
-    private string _requestMethod;
-    private string _requestPath;
-    private string _requestBody;
-    private string _outputText;
+    private ProductViewModel? _selectedProduct;
+    private CartLineViewModel? _selectedCartLine;
+    private int _selectedQuantity = 1;
+    private string _customerName = "Guest Customer";
+    private string _shippingAddress = "Seoul Fulfillment Desk";
+    private string _paymentMethod = "Card";
+    private string _consoleText;
 
-    private MainWindowViewModel(
-        string title,
-        string workspaceTitle,
-        string apiBaseUrl,
-        IReadOnlyList<ConsoleOperationViewModel> operations)
+    private MainWindowViewModel()
     {
-        Title = title;
-        WorkspaceTitle = workspaceTitle;
-        OperationConsoleTitle = "Operation Console";
-        OutputConsoleTitle = "Output Console";
-        Operations = operations;
-        _selectedOperation = operations.FirstOrDefault();
-        _apiBaseUrl = apiBaseUrl;
-        _requestMethod = _selectedOperation?.Method ?? "GET";
-        _requestPath = _selectedOperation?.Path ?? "/";
-        _requestBody = _selectedOperation?.SampleBody ?? string.Empty;
-        AddActivity("Storefront ready.");
-        _outputText = CreateStorefrontOutput(_selectedOperation?.Screen ?? "Catalog");
-        ExecuteSelectedOperationCommand = new RelayCommand(ExecuteSelectedOperation);
-        ClearOutputCommand = new RelayCommand(ClearOutput);
+        Title = "Retail Order System";
+        WorkspaceTitle = "Mini Shopping Mall";
+        CatalogTitle = "Product Catalog";
+        CartTitle = "Shopping Cart";
+        CheckoutTitle = "Checkout";
+        ConsoleTitle = "Shopping Console";
+        Products = new ObservableCollection<ProductViewModel>(CreateProducts());
+        CartLines = [];
+        PaymentMethods = ["Card", "BankTransfer", "Cash", "Coupon"];
+        _selectedProduct = Products.FirstOrDefault();
+        _consoleText = CreateInitialConsoleText();
+
+        AddSelectedProductCommand = new RelayCommand(AddSelectedProductToCart);
+        IncreaseSelectedQuantityCommand = new RelayCommand(() => SelectedQuantity += 1);
+        DecreaseSelectedQuantityCommand = new RelayCommand(() => SelectedQuantity -= 1);
+        IncreaseSelectedCartLineCommand = new RelayCommand(IncreaseSelectedCartLine);
+        DecreaseSelectedCartLineCommand = new RelayCommand(DecreaseSelectedCartLine);
+        RemoveSelectedCartLineCommand = new RelayCommand(RemoveSelectedCartLine);
+        ClearCartCommand = new RelayCommand(ClearCart);
+        PlaceOrderCommand = new RelayCommand(PlaceOrder);
+        ClearConsoleCommand = new RelayCommand(ClearConsole);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -49,681 +50,354 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public string WorkspaceTitle { get; }
 
-    public string ApiBaseUrl
+    public string CatalogTitle { get; }
+
+    public string CartTitle { get; }
+
+    public string CheckoutTitle { get; }
+
+    public string ConsoleTitle { get; }
+
+    public ObservableCollection<ProductViewModel> Products { get; }
+
+    public ObservableCollection<CartLineViewModel> CartLines { get; }
+
+    public IReadOnlyList<string> PaymentMethods { get; }
+
+    public ProductViewModel? SelectedProduct
     {
-        get => _apiBaseUrl;
+        get => _selectedProduct;
         set
         {
-            if (_apiBaseUrl == value)
+            if (_selectedProduct == value)
             {
                 return;
             }
 
-            _apiBaseUrl = value;
+            _selectedProduct = value;
             OnPropertyChanged();
-            OutputText = CreateStorefrontOutput(SelectedOperation?.Screen ?? "Catalog");
         }
     }
 
-    public string OperationConsoleTitle { get; }
-
-    public string OutputConsoleTitle { get; }
-
-    public IReadOnlyList<ConsoleOperationViewModel> Operations { get; }
-
-    public ConsoleOperationViewModel? SelectedOperation
+    public CartLineViewModel? SelectedCartLine
     {
-        get => _selectedOperation;
+        get => _selectedCartLine;
         set
         {
-            if (_selectedOperation == value)
+            if (_selectedCartLine == value)
             {
                 return;
             }
 
-            _selectedOperation = value;
-            RequestMethod = value?.Method ?? string.Empty;
-            RequestPath = value?.Path ?? string.Empty;
-            RequestBody = value?.SampleBody ?? string.Empty;
-            OutputText = CreateStorefrontOutput(value?.Screen ?? "Catalog");
+            _selectedCartLine = value;
             OnPropertyChanged();
         }
     }
 
-    public string RequestBody
+    public int SelectedQuantity
     {
-        get => _requestBody;
+        get => _selectedQuantity;
         set
         {
-            if (_requestBody == value)
+            var normalized = Math.Clamp(value, 1, 99);
+            if (_selectedQuantity == normalized)
             {
                 return;
             }
 
-            _requestBody = value;
+            _selectedQuantity = normalized;
             OnPropertyChanged();
         }
     }
 
-    public string RequestMethod
+    public string CustomerName
     {
-        get => _requestMethod;
+        get => _customerName;
         set
         {
-            if (_requestMethod == value)
+            if (_customerName == value)
             {
                 return;
             }
 
-            _requestMethod = value;
+            _customerName = value;
             OnPropertyChanged();
-            OutputText = CreateStorefrontOutput(SelectedOperation?.Screen ?? "Catalog");
         }
     }
 
-    public string RequestPath
+    public string ShippingAddress
     {
-        get => _requestPath;
+        get => _shippingAddress;
         set
         {
-            if (_requestPath == value)
+            if (_shippingAddress == value)
             {
                 return;
             }
 
-            _requestPath = value;
+            _shippingAddress = value;
             OnPropertyChanged();
-            OutputText = CreateStorefrontOutput(SelectedOperation?.Screen ?? "Catalog");
         }
     }
 
-    public string OutputText
+    public string PaymentMethod
     {
-        get => _outputText;
+        get => _paymentMethod;
+        set
+        {
+            if (_paymentMethod == value)
+            {
+                return;
+            }
+
+            _paymentMethod = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string ConsoleText
+    {
+        get => _consoleText;
         private set
         {
-            if (_outputText == value)
+            if (_consoleText == value)
             {
                 return;
             }
 
-            _outputText = value;
+            _consoleText = value;
             OnPropertyChanged();
         }
     }
 
-    public ICommand ExecuteSelectedOperationCommand { get; }
+    public string CartSummary => CartLines.Count == 0
+        ? "Cart: empty"
+        : $"Cart: {CartLines.Sum(line => line.Quantity)} item{Pluralize(CartLines.Sum(line => line.Quantity))} / {ToMoney(CartTotal)}";
 
-    public ICommand ClearOutputCommand { get; }
+    public decimal CartTotal => CartLines.Sum(line => line.LineTotal);
 
-    public string CartSummary
-    {
-        get
-        {
-            var quantity = CartQuantity;
-            return quantity == 0
-                ? "Cart: empty"
-                : $"Cart: {quantity} item{Pluralize(quantity)} / {ToMoney(CartTotal)}";
-        }
-    }
+    public string LatestOrderNumber => _orders.LastOrDefault()?.OrderNumber ?? "No order";
 
-    public string LatestOrderSummary
-    {
-        get
-        {
-            var latestOrder = _orders.LastOrDefault();
-            return latestOrder is null
-                ? "Orders: none"
-                : $"Latest: Order #{latestOrder.Number} / Customer #{latestOrder.CustomerId} / {latestOrder.Status} / {latestOrder.PaymentSummary}";
-        }
-    }
+    public string LatestOrderStatus => _orders.LastOrDefault()?.Status ?? "None";
 
-    public string InventorySummary => $"Inventory: {_catalog.Sum(product => product.Stock)} units";
+    public decimal LatestOrderTotal => _orders.LastOrDefault()?.Total ?? 0m;
+
+    public string LatestOrderSummary => _orders.LastOrDefault() is { } latestOrder
+        ? $"{latestOrder.OrderNumber} / {latestOrder.CustomerName} / {latestOrder.Status} / {ToMoney(latestOrder.Total)}"
+        : "No submitted order";
+
+    public ICommand AddSelectedProductCommand { get; }
+
+    public ICommand IncreaseSelectedQuantityCommand { get; }
+
+    public ICommand DecreaseSelectedQuantityCommand { get; }
+
+    public ICommand IncreaseSelectedCartLineCommand { get; }
+
+    public ICommand DecreaseSelectedCartLineCommand { get; }
+
+    public ICommand RemoveSelectedCartLineCommand { get; }
+
+    public ICommand ClearCartCommand { get; }
+
+    public ICommand PlaceOrderCommand { get; }
+
+    public ICommand ClearConsoleCommand { get; }
 
     public static MainWindowViewModel CreateDefault(string apiBaseUrl = "http://localhost:5000")
     {
-        return new MainWindowViewModel(
-            "Retail Order System",
-            "Operations Console",
-            apiBaseUrl,
-            [
-                new(
-                    "Browse Catalog",
-                    "GET",
-                    "/api/products",
-                    "{}",
-                    "Catalog",
-                    ConsoleOperationKind.BrowseCatalog),
-                new(
-                    "Add T-Shirt to Cart",
-                    "POST",
-                    "/shop/cart/items",
-                    """
-                    {
-                      "sku": "TSHIRT-BLK-M",
-                      "quantity": 1
-                    }
-                    """,
-                    "Cart",
-                    ConsoleOperationKind.AddTShirtToCart),
-                new(
-                    "Add Travel Mug to Cart",
-                    "POST",
-                    "/shop/cart/items",
-                    """
-                    {
-                      "sku": "MUG-STEEL-350",
-                      "quantity": 1
-                    }
-                    """,
-                    "Cart",
-                    ConsoleOperationKind.AddMugToCart),
-                new(
-                    "View Cart",
-                    "GET",
-                    "/shop/cart",
-                    "{}",
-                    "Cart",
-                    ConsoleOperationKind.ViewCart),
-                new(
-                    "Checkout Cart",
-                    "POST",
-                    "/api/orders",
-                    """
-                    {
-                      "customerId": 1,
-                      "items": "current cart"
-                    }
-                    """,
-                    "Orders",
-                    ConsoleOperationKind.CheckoutCart),
-                new(
-                    "View Orders",
-                    "GET",
-                    "/api/orders",
-                    "{}",
-                    "Orders",
-                    ConsoleOperationKind.ViewOrders),
-                new(
-                    "Confirm Latest Order",
-                    "PATCH",
-                    "/api/orders/{latest}/status",
-                    """
-                    {
-                      "status": "Confirmed"
-                    }
-                    """,
-                    "Orders",
-                    ConsoleOperationKind.ConfirmLatestOrder),
-                new(
-                    "Record Card Payment",
-                    "POST",
-                    "/api/orders/{latest}/payments",
-                    """
-                    {
-                      "paymentMethod": "Card",
-                      "status": "Paid"
-                    }
-                    """,
-                    "Orders",
-                    ConsoleOperationKind.RecordCardPayment),
-                new(
-                    "Cancel Latest Order",
-                    "POST",
-                    "/api/orders/{latest}/cancel",
-                    "{}",
-                    "Orders",
-                    ConsoleOperationKind.CancelLatestOrder),
-                new(
-                    "Inventory Snapshot",
-                    "GET",
-                    "/api/inventory",
-                    "{}",
-                    "Inventory",
-                    ConsoleOperationKind.InventorySnapshot)
-            ]);
+        _ = apiBaseUrl;
+        return new MainWindowViewModel();
     }
 
-    private void ExecuteSelectedOperation()
+    private void AddSelectedProductToCart()
     {
-        if (SelectedOperation is null)
+        if (SelectedProduct is null)
         {
-            AddActivity("No operation selected.");
-            OutputText = CreateStorefrontOutput("Catalog");
+            AppendConsole("No product selected.");
             return;
         }
 
-        var screen = SelectedOperation.Screen;
-        switch (SelectedOperation.Kind)
-        {
-            case ConsoleOperationKind.BrowseCatalog:
-                AddActivity("Catalog refreshed.");
-                screen = "Catalog";
-                break;
-            case ConsoleOperationKind.AddTShirtToCart:
-                AddCartItemFromRequestBody();
-                screen = "Cart";
-                break;
-            case ConsoleOperationKind.AddMugToCart:
-                AddCartItemFromRequestBody();
-                screen = "Cart";
-                break;
-            case ConsoleOperationKind.ViewCart:
-                AddActivity("Cart opened.");
-                screen = "Cart";
-                break;
-            case ConsoleOperationKind.CheckoutCart:
-                CheckoutCart();
-                screen = "Orders";
-                break;
-            case ConsoleOperationKind.ViewOrders:
-                AddActivity("Orders opened.");
-                screen = "Orders";
-                break;
-            case ConsoleOperationKind.ConfirmLatestOrder:
-                UpdateLatestOrderStatus();
-                screen = "Orders";
-                break;
-            case ConsoleOperationKind.RecordCardPayment:
-                RecordPaymentOnLatestOrder();
-                screen = "Orders";
-                break;
-            case ConsoleOperationKind.CancelLatestOrder:
-                CancelLatestOrder();
-                screen = "Orders";
-                break;
-            case ConsoleOperationKind.InventorySnapshot:
-                AddActivity("Inventory snapshot opened.");
-                screen = "Inventory";
-                break;
-        }
-
-        NotifyStorefrontStateChanged();
-        OutputText = CreateStorefrontOutput(screen);
+        AddProductToCart(SelectedProduct, SelectedQuantity);
     }
 
-    private void ClearOutput()
+    private void AddProductToCart(ProductViewModel product, int quantity)
     {
-        _activity.Clear();
-        AddActivity("Output cleared.");
-        OutputText = CreateStorefrontOutput(SelectedOperation?.Screen ?? "Catalog");
-    }
-
-    private void AddCartItemFromRequestBody()
-    {
-        if (!TryParseRequestBody(out var document) || document is null)
+        var existingLine = CartLines.SingleOrDefault(line => line.Sku == product.Sku);
+        var existingQuantity = existingLine?.Quantity ?? 0;
+        if (existingQuantity + quantity > product.Stock)
         {
+            AppendConsole($"{product.Name} stock is not enough. Requested {existingQuantity + quantity}, available {product.Stock}.");
             return;
         }
 
-        using (document)
+        if (existingLine is null)
         {
-            if (!TryReadString(document.RootElement, "sku", out var sku))
-            {
-                AddActivity("Cart request body must include sku.");
-                return;
-            }
-
-            var quantity = TryReadInt(document.RootElement, "quantity", out var requestedQuantity)
-                ? requestedQuantity
-                : 1;
-            AddProductToCart(sku, quantity);
-        }
-    }
-
-    private void AddProductToCart(string sku, int quantity)
-    {
-        if (quantity <= 0)
-        {
-            AddActivity("Cart request quantity must be greater than 0.");
-            return;
-        }
-
-        var product = _catalog.SingleOrDefault(item => string.Equals(item.Sku, sku, StringComparison.OrdinalIgnoreCase));
-        if (product is null)
-        {
-            AddActivity($"Unknown SKU: {sku}.");
-            return;
-        }
-
-        var existingQuantity = _cart
-            .Where(line => line.Product == product)
-            .Sum(line => line.Quantity);
-
-        if (product.Stock < existingQuantity + quantity)
-        {
-            AddActivity($"{product.Name} stock is not enough.");
-            return;
-        }
-
-        var cartLine = _cart.SingleOrDefault(line => line.Product == product);
-        if (cartLine is null)
-        {
-            _cart.Add(new CartLine(product, quantity));
+            var line = new CartLineViewModel(product, quantity);
+            CartLines.Add(line);
+            SelectedCartLine = line;
         }
         else
         {
-            cartLine.Quantity += quantity;
+            existingLine.Quantity += quantity;
+            SelectedCartLine = existingLine;
         }
 
-        AddActivity($"Added {product.Name} x {quantity} to cart.");
+        AppendConsole($"Added {product.Name} x {quantity} to cart.");
+        NotifyCartChanged();
     }
 
-    private void CheckoutCart()
+    private void IncreaseSelectedCartLine()
     {
-        if (_cart.Count == 0)
+        if (SelectedCartLine is null)
         {
-            AddActivity("Checkout skipped because the cart is empty.");
+            AppendConsole("Select a cart item before changing quantity.");
             return;
         }
 
-        var customerId = 1;
-        if (TryParseRequestBody(out var document) && document is not null)
+        if (SelectedCartLine.Quantity >= SelectedCartLine.AvailableStock)
         {
-            using (document)
-            {
-                if (TryReadInt(document.RootElement, "customerId", out var requestedCustomerId))
-                {
-                    customerId = requestedCustomerId;
-                }
-            }
-        }
-        else
-        {
+            AppendConsole($"{SelectedCartLine.ProductName} stock limit reached.");
             return;
         }
 
-        var order = new StoreOrder(
-            _nextOrderNumber++,
-            customerId,
-            "Pending",
-            "Unpaid",
-            "None",
-            _cart.Select(line => new StoreOrderLine(
-                line.Product.Name,
-                line.Product.Sku,
-                line.Quantity,
-                line.Product.Price)).ToList());
+        SelectedCartLine.Quantity += 1;
+        AppendConsole($"Increased {SelectedCartLine.ProductName} to {SelectedCartLine.Quantity}.");
+        NotifyCartChanged();
+    }
 
-        foreach (var line in _cart)
+    private void DecreaseSelectedCartLine()
+    {
+        if (SelectedCartLine is null)
         {
-            line.Product.Stock -= line.Quantity;
+            AppendConsole("Select a cart item before changing quantity.");
+            return;
+        }
+
+        if (SelectedCartLine.Quantity <= 1)
+        {
+            RemoveSelectedCartLine();
+            return;
+        }
+
+        SelectedCartLine.Quantity -= 1;
+        AppendConsole($"Decreased {SelectedCartLine.ProductName} to {SelectedCartLine.Quantity}.");
+        NotifyCartChanged();
+    }
+
+    private void RemoveSelectedCartLine()
+    {
+        if (SelectedCartLine is null)
+        {
+            AppendConsole("Select a cart item before removing it.");
+            return;
+        }
+
+        var removedName = SelectedCartLine.ProductName;
+        CartLines.Remove(SelectedCartLine);
+        SelectedCartLine = CartLines.FirstOrDefault();
+        AppendConsole($"Removed {removedName} from cart.");
+        NotifyCartChanged();
+    }
+
+    private void ClearCart()
+    {
+        CartLines.Clear();
+        SelectedCartLine = null;
+        AppendConsole("Cart cleared.");
+        NotifyCartChanged();
+    }
+
+    private void PlaceOrder()
+    {
+        if (CartLines.Count == 0)
+        {
+            AppendConsole("Cannot place order because the cart is empty.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CustomerName))
+        {
+            AppendConsole("Customer name is required before checkout.");
+            return;
+        }
+
+        var orderNumber = $"Order #{_nextOrderNumber++}";
+        var orderLines = CartLines
+            .Select(line => new StoreOrderLineViewModel(line.ProductName, line.Sku, line.Quantity, line.UnitPrice))
+            .ToList();
+        var order = new StoreOrderViewModel(
+            orderNumber,
+            CustomerName.Trim(),
+            string.IsNullOrWhiteSpace(ShippingAddress) ? "Pickup" : ShippingAddress.Trim(),
+            PaymentMethod,
+            "Paid",
+            orderLines);
+
+        foreach (var cartLine in CartLines)
+        {
+            var product = Products.Single(item => item.Sku == cartLine.Sku);
+            product.Stock -= cartLine.Quantity;
         }
 
         _orders.Add(order);
-        _cart.Clear();
-        AddActivity($"Created Order #{order.Number} for Customer #{customerId} from cart.");
+        CartLines.Clear();
+        SelectedCartLine = null;
+        AppendConsole($"{order.OrderNumber} placed by {order.CustomerName}. Total {ToMoney(order.Total)}.");
+        AppendConsole($"Payment accepted by {order.PaymentMethod}.");
+        AppendConsole($"Shipping destination: {order.ShippingAddress}.");
+        NotifyCartChanged();
+        NotifyOrderChanged();
     }
 
-    private void UpdateLatestOrderStatus()
+    private void ClearConsole()
     {
-        var latestOrder = _orders.LastOrDefault();
-        if (latestOrder is null)
-        {
-            AddActivity("No order is available for status update.");
-            return;
-        }
-
-        if (!TryParseRequestBody(out var document) || document is null)
-        {
-            return;
-        }
-
-        string status;
-        using (document)
-        {
-            if (!TryReadString(document.RootElement, "status", out var requestedStatus))
-            {
-                AddActivity("Status request body must include status.");
-                return;
-            }
-
-            status = requestedStatus;
-            latestOrder.Status = status;
-        }
-
-        AddActivity($"Order #{latestOrder.Number} moved to {status}.");
+        ConsoleText = "Shopping console cleared.";
     }
 
-    private void RecordPaymentOnLatestOrder()
+    private void AppendConsole(string message)
     {
-        var latestOrder = _orders.LastOrDefault();
-        if (latestOrder is null)
+        var builder = new StringBuilder(ConsoleText.TrimEnd());
+        if (builder.Length > 0)
         {
-            AddActivity("No order is available for payment.");
-            return;
+            builder.AppendLine();
         }
 
-        if (!TryParseRequestBody(out var document) || document is null)
-        {
-            return;
-        }
-
-        using (document)
-        {
-            if (!TryReadString(document.RootElement, "paymentMethod", out var paymentMethod))
-            {
-                AddActivity("Payment request body must include paymentMethod.");
-                return;
-            }
-
-            if (!TryReadString(document.RootElement, "status", out var status))
-            {
-                AddActivity("Payment request body must include status.");
-                return;
-            }
-
-            latestOrder.PaymentMethod = paymentMethod;
-            latestOrder.PaymentStatus = status;
-            AddActivity($"Recorded {paymentMethod} payment for Order #{latestOrder.Number}.");
-        }
+        builder.Append($"[{DateTimeOffset.Now:HH:mm:ss}] {message}");
+        ConsoleText = builder.ToString();
     }
 
-    private void CancelLatestOrder()
-    {
-        var latestOrder = _orders.LastOrDefault();
-        if (latestOrder is null)
-        {
-            AddActivity("No order is available for cancellation.");
-            return;
-        }
-
-        if (latestOrder.Status == "Cancelled")
-        {
-            AddActivity($"Order #{latestOrder.Number} is already cancelled.");
-            return;
-        }
-
-        latestOrder.Status = "Cancelled";
-        foreach (var line in latestOrder.Lines)
-        {
-            var product = _catalog.Single(item => item.Sku == line.Sku);
-            product.Stock += line.Quantity;
-        }
-
-        AddActivity($"Cancelled Order #{latestOrder.Number} and restored inventory.");
-    }
-
-    private string CreateStorefrontOutput(string screen)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine("Mini Storefront");
-        builder.AppendLine($"API base URL: {ApiBaseUrl}");
-        if (SelectedOperation is not null)
-        {
-            builder.AppendLine($"Selected: {SelectedOperation.Name}");
-        }
-
-        builder.AppendLine($"Request: {RequestMethod} {RequestPath}");
-        builder.AppendLine($"Request URL: {BuildRequestUrl()}");
-        builder.AppendLine();
-        AppendStoreSummary(builder);
-        builder.AppendLine();
-
-        switch (screen)
-        {
-            case "Cart":
-                AppendCart(builder);
-                break;
-            case "Orders":
-                AppendOrders(builder);
-                break;
-            case "Inventory":
-                AppendInventory(builder);
-                break;
-            default:
-                AppendCatalog(builder);
-                break;
-        }
-
-        builder.AppendLine();
-        AppendActivity(builder);
-        return builder.ToString().TrimEnd();
-    }
-
-    private void AppendStoreSummary(StringBuilder builder)
-    {
-        builder.AppendLine(CartSummary);
-        builder.AppendLine(LatestOrderSummary);
-        builder.AppendLine(InventorySummary);
-    }
-
-    private void AppendCatalog(StringBuilder builder)
-    {
-        builder.AppendLine("Catalog");
-        foreach (var product in _catalog)
-        {
-            builder.AppendLine($"- {product.Name} | {product.Sku} | {ToMoney(product.Price)} | stock {product.Stock}");
-        }
-    }
-
-    private void AppendCart(StringBuilder builder)
-    {
-        builder.AppendLine("Cart");
-        if (_cart.Count == 0)
-        {
-            builder.AppendLine("Cart: empty");
-            return;
-        }
-
-        foreach (var line in _cart)
-        {
-            builder.AppendLine($"- {line.Product.Name} x {line.Quantity} | {ToMoney(line.LineTotal)}");
-        }
-
-        builder.AppendLine($"Cart total: {ToMoney(CartTotal)}");
-    }
-
-    private void AppendOrders(StringBuilder builder)
-    {
-        builder.AppendLine("Orders");
-        if (_orders.Count == 0)
-        {
-            builder.AppendLine("No submitted orders.");
-            return;
-        }
-
-        foreach (var order in _orders.OrderByDescending(order => order.Number))
-        {
-            builder.AppendLine($"- Order #{order.Number} | Customer #{order.CustomerId} | {order.Status} | {order.PaymentSummary} | {ToMoney(order.Total)}");
-            foreach (var line in order.Lines)
-            {
-                builder.AppendLine($"  {line.ProductName} x {line.Quantity} | {ToMoney(line.LineTotal)}");
-            }
-        }
-    }
-
-    private void AppendInventory(StringBuilder builder)
-    {
-        builder.AppendLine("Inventory");
-        foreach (var product in _catalog)
-        {
-            builder.AppendLine($"- {product.Name} | stock {product.Stock}");
-        }
-    }
-
-    private void AppendActivity(StringBuilder builder)
-    {
-        builder.AppendLine("Activity");
-        foreach (var item in _activity.Take(5))
-        {
-            builder.AppendLine($"- {item}");
-        }
-    }
-
-    private void AddActivity(string message)
-    {
-        _activity.Insert(0, $"[{DateTimeOffset.Now:HH:mm:ss}] {message}");
-        if (_activity.Count > 12)
-        {
-            _activity.RemoveRange(12, _activity.Count - 12);
-        }
-    }
-
-    private void NotifyStorefrontStateChanged()
+    private void NotifyCartChanged()
     {
         OnPropertyChanged(nameof(CartSummary));
+        OnPropertyChanged(nameof(CartTotal));
+    }
+
+    private void NotifyOrderChanged()
+    {
+        OnPropertyChanged(nameof(LatestOrderNumber));
+        OnPropertyChanged(nameof(LatestOrderStatus));
+        OnPropertyChanged(nameof(LatestOrderTotal));
         OnPropertyChanged(nameof(LatestOrderSummary));
-        OnPropertyChanged(nameof(InventorySummary));
     }
 
-    private string BuildRequestUrl()
+    private static string CreateInitialConsoleText()
     {
-        var baseUrl = ApiBaseUrl.Trim().TrimEnd('/');
-        var path = RequestPath.Trim();
-        if (string.IsNullOrWhiteSpace(baseUrl))
-        {
-            return path;
-        }
-
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return baseUrl;
-        }
-
-        return path.StartsWith("/", StringComparison.Ordinal)
-            ? $"{baseUrl}{path}"
-            : $"{baseUrl}/{path}";
+        return $"[{DateTimeOffset.Now:HH:mm:ss}] Mini shopping mall opened.";
     }
 
-    private bool TryParseRequestBody(out JsonDocument? document)
+    private static List<ProductViewModel> CreateProducts()
     {
-        document = null;
-        var body = string.IsNullOrWhiteSpace(RequestBody) ? "{}" : RequestBody;
-        try
-        {
-            document = JsonDocument.Parse(body);
-            return true;
-        }
-        catch (JsonException)
-        {
-            AddActivity("Request body must be valid JSON.");
-            return false;
-        }
+        return
+        [
+            new("TSHIRT-BLK-M", "Black T-Shirt M", "Apparel", "Soft black cotton tee for daily wear.", 29000m, 50),
+            new("MUG-STEEL-350", "Insulated Travel Mug", "Kitchen", "Steel tumbler that keeps drinks warm during delivery runs.", 18000m, 30),
+            new("NOTE-A5-GRID", "A5 Grid Notebook", "Stationery", "Grid notebook for order notes and stock checks.", 9000m, 80),
+            new("BAG-CANVAS-S", "Canvas Tote Bag", "Apparel", "Small canvas tote for light shopping.", 22000m, 25),
+            new("LAMP-DESK-LED", "LED Desk Lamp", "Home", "Compact desk lamp with warm and cool light modes.", 45000m, 14),
+            new("SOAP-CITRUS-SET", "Citrus Soap Set", "Lifestyle", "Three-piece handmade citrus soap set.", 15000m, 40)
+        ];
     }
-
-    private static bool TryReadString(JsonElement element, string propertyName, out string value)
-    {
-        value = string.Empty;
-        if (!element.TryGetProperty(propertyName, out var property) ||
-            property.ValueKind != JsonValueKind.String)
-        {
-            return false;
-        }
-
-        value = property.GetString() ?? string.Empty;
-        return !string.IsNullOrWhiteSpace(value);
-    }
-
-    private static bool TryReadInt(JsonElement element, string propertyName, out int value)
-    {
-        value = 0;
-        return element.TryGetProperty(propertyName, out var property) && property.TryGetInt32(out value);
-    }
-
-    private int CartQuantity => _cart.Sum(line => line.Quantity);
-
-    private decimal CartTotal => _cart.Sum(line => line.LineTotal);
 
     private static string ToMoney(decimal amount)
     {
@@ -735,86 +409,116 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         return quantity == 1 ? string.Empty : "s";
     }
 
-    private static List<StoreProduct> CreateCatalog()
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
-        return
-        [
-            new("TSHIRT-BLK-M", "Black T-Shirt M", 29000m, 50),
-            new("MUG-STEEL-350", "Insulated Travel Mug", 18000m, 30),
-            new("NOTE-A5-GRID", "A5 Grid Notebook", 9000m, 80)
-        ];
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+}
+
+public sealed class ProductViewModel(
+    string sku,
+    string name,
+    string category,
+    string description,
+    decimal price,
+    int stock) : INotifyPropertyChanged
+{
+    private int _stock = stock;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public string Sku { get; } = sku;
+
+    public string Name { get; } = name;
+
+    public string Category { get; } = category;
+
+    public string Description { get; } = description;
+
+    public decimal Price { get; } = price;
+
+    public string PriceText => Price.ToString("N0", CultureInfo.InvariantCulture);
+
+    public int Stock
+    {
+        get => _stock;
+        set
+        {
+            if (_stock == value)
+            {
+                return;
+            }
+
+            _stock = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(StockText));
+        }
+    }
+
+    public string StockText => $"Stock {Stock}";
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+}
 
-    private sealed record StoreProduct(string Sku, string Name, decimal Price, int InitialStock)
+public sealed class CartLineViewModel(ProductViewModel product, int quantity) : INotifyPropertyChanged
+{
+    private int _quantity = quantity;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public string Sku { get; } = product.Sku;
+
+    public string ProductName { get; } = product.Name;
+
+    public decimal UnitPrice { get; } = product.Price;
+
+    public int AvailableStock => product.Stock;
+
+    public int Quantity
     {
-        public int Stock { get; set; } = InitialStock;
+        get => _quantity;
+        set
+        {
+            var normalized = Math.Clamp(value, 1, 99);
+            if (_quantity == normalized)
+            {
+                return;
+            }
+
+            _quantity = normalized;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(LineTotal));
+            OnPropertyChanged(nameof(LineTotalText));
+        }
     }
 
-    private sealed class CartLine(StoreProduct product, int quantity)
+    public decimal LineTotal => UnitPrice * Quantity;
+
+    public string UnitPriceText => UnitPrice.ToString("N0", CultureInfo.InvariantCulture);
+
+    public string LineTotalText => LineTotal.ToString("N0", CultureInfo.InvariantCulture);
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
-        public StoreProduct Product { get; } = product;
-
-        public int Quantity { get; set; } = quantity;
-
-        public decimal LineTotal => Product.Price * Quantity;
-    }
-
-    private sealed class StoreOrder(
-        int number,
-        int customerId,
-        string status,
-        string paymentStatus,
-        string paymentMethod,
-        IReadOnlyList<StoreOrderLine> lines)
-    {
-        public int Number { get; } = number;
-
-        public int CustomerId { get; } = customerId;
-
-        public string Status { get; set; } = status;
-
-        public string PaymentStatus { get; set; } = paymentStatus;
-
-        public string PaymentMethod { get; set; } = paymentMethod;
-
-        public IReadOnlyList<StoreOrderLine> Lines { get; } = lines;
-
-        public decimal Total => Lines.Sum(line => line.LineTotal);
-
-        public string PaymentSummary => PaymentMethod == "None"
-            ? PaymentStatus
-            : $"{PaymentMethod} {PaymentStatus}";
-    }
-
-    private sealed record StoreOrderLine(string ProductName, string Sku, int Quantity, decimal UnitPrice)
-    {
-        public decimal LineTotal => UnitPrice * Quantity;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 
-public sealed record ConsoleOperationViewModel(
-    string Name,
-    string Method,
-    string Path,
-    string SampleBody,
-    string Screen,
-    ConsoleOperationKind Kind);
-
-public enum ConsoleOperationKind
+public sealed record StoreOrderViewModel(
+    string OrderNumber,
+    string CustomerName,
+    string ShippingAddress,
+    string PaymentMethod,
+    string Status,
+    IReadOnlyList<StoreOrderLineViewModel> Lines)
 {
-    BrowseCatalog,
-    AddTShirtToCart,
-    AddMugToCart,
-    ViewCart,
-    CheckoutCart,
-    ViewOrders,
-    ConfirmLatestOrder,
-    RecordCardPayment,
-    CancelLatestOrder,
-    InventorySnapshot
+    public decimal Total => Lines.Sum(line => line.LineTotal);
+}
+
+public sealed record StoreOrderLineViewModel(string ProductName, string Sku, int Quantity, decimal UnitPrice)
+{
+    public decimal LineTotal => UnitPrice * Quantity;
 }

@@ -9,130 +9,104 @@ public sealed class DesktopBootstrapTests
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
 
     [Fact]
-    public void MainWindowViewModel_ProvidesShoppingOperationsAndOutputConsole()
+    public void MainWindowViewModel_ProvidesMiniShoppingMallCatalogAndCart()
     {
-        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
+        var viewModel = MainWindowViewModel.CreateDefault();
 
         Assert.Equal("Retail Order System", viewModel.Title);
-        Assert.Equal("Operations Console", viewModel.WorkspaceTitle);
-        Assert.Equal("http://localhost:5184", viewModel.ApiBaseUrl);
-        Assert.Equal("Operation Console", viewModel.OperationConsoleTitle);
-        Assert.Equal("Output Console", viewModel.OutputConsoleTitle);
-        Assert.Contains(viewModel.Operations, operation => operation.Name == "Browse Catalog");
-        Assert.Contains(viewModel.Operations, operation => operation.Name == "Add T-Shirt to Cart");
-        Assert.Contains(viewModel.Operations, operation => operation.Name == "Checkout Cart");
-        Assert.Contains(viewModel.Operations, operation => operation.Name == "Confirm Latest Order");
-        Assert.Contains(viewModel.Operations, operation => operation.Name == "Record Card Payment");
-        Assert.Contains(viewModel.Operations, operation => operation.Method == "GET");
-        Assert.Contains(viewModel.Operations, operation => operation.Method == "POST");
-        Assert.Contains(viewModel.Operations, operation => operation.Method == "PATCH");
-        Assert.NotNull(viewModel.SelectedOperation);
-        Assert.Equal("GET", viewModel.RequestMethod);
-        Assert.Equal("/api/products", viewModel.RequestPath);
-        Assert.Contains("Mini Storefront", viewModel.OutputText);
-        Assert.Contains("Catalog", viewModel.OutputText);
+        Assert.Equal("Mini Shopping Mall", viewModel.WorkspaceTitle);
+        Assert.Equal("Product Catalog", viewModel.CatalogTitle);
+        Assert.Equal("Shopping Cart", viewModel.CartTitle);
+        Assert.Equal("Checkout", viewModel.CheckoutTitle);
+        Assert.Equal("Shopping Console", viewModel.ConsoleTitle);
+        Assert.True(viewModel.Products.Count >= 6);
+        Assert.Contains(viewModel.Products, product => product.Sku == "TSHIRT-BLK-M");
+        Assert.Contains(viewModel.Products, product => product.Sku == "MUG-STEEL-350");
+        Assert.Contains(viewModel.Products, product => product.Sku == "NOTE-A5-GRID");
+        Assert.NotNull(viewModel.SelectedProduct);
+        Assert.Empty(viewModel.CartLines);
+        Assert.Contains("Mini shopping mall opened", viewModel.ConsoleText);
     }
 
     [Fact]
-    public void MainWindowViewModel_SelectionChangesOutputConsoleScreen()
+    public void MainWindowViewModel_AddsSelectedProductsToCartWithChosenQuantity()
     {
-        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
-        var ordersOperation = viewModel.Operations.Single(operation => operation.Name == "View Orders");
+        var viewModel = MainWindowViewModel.CreateDefault();
+        viewModel.SelectedProduct = viewModel.Products.Single(product => product.Sku == "NOTE-A5-GRID");
+        viewModel.SelectedQuantity = 3;
 
-        viewModel.SelectedOperation = ordersOperation;
+        viewModel.AddSelectedProductCommand.Execute(null);
 
-        Assert.Contains("Orders", viewModel.OutputText);
-        Assert.Contains("No submitted orders", viewModel.OutputText);
+        var line = Assert.Single(viewModel.CartLines);
+        Assert.Equal("A5 Grid Notebook", line.ProductName);
+        Assert.Equal(3, line.Quantity);
+        Assert.Equal(27000m, viewModel.CartTotal);
+        Assert.Contains("Added A5 Grid Notebook x 3", viewModel.ConsoleText);
     }
 
     [Fact]
-    public void MainWindowViewModel_ExecutesCartAndCheckoutAsMiniStorefront()
+    public void MainWindowViewModel_UpdatesCartLineQuantityAndRemovesLine()
     {
-        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
-        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Add T-Shirt to Cart");
-        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+        var viewModel = MainWindowViewModel.CreateDefault();
+        viewModel.AddSelectedProductCommand.Execute(null);
+        viewModel.SelectedCartLine = viewModel.CartLines.Single();
 
-        Assert.Contains("Black T-Shirt M x 1", viewModel.OutputText);
-        Assert.Contains("Cart total: 29,000", viewModel.OutputText);
+        viewModel.IncreaseSelectedCartLineCommand.Execute(null);
+        Assert.Equal(2, viewModel.SelectedCartLine.Quantity);
 
-        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Checkout Cart");
-        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+        viewModel.DecreaseSelectedCartLineCommand.Execute(null);
+        Assert.Equal(1, viewModel.SelectedCartLine.Quantity);
 
-        Assert.Contains("Order #1001", viewModel.OutputText);
-        Assert.Contains("Pending", viewModel.OutputText);
-        Assert.Contains("Cart: empty", viewModel.OutputText);
+        viewModel.RemoveSelectedCartLineCommand.Execute(null);
+        Assert.Empty(viewModel.CartLines);
+        Assert.Contains("Removed Black T-Shirt M from cart", viewModel.ConsoleText);
     }
 
     [Fact]
-    public void MainWindowViewModel_UsesEditableRequestValuesWhenRunningCartAction()
+    public void MainWindowViewModel_CheckoutCreatesOrderFromCartAndCustomerInputs()
     {
-        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
-        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Add T-Shirt to Cart");
-        viewModel.ApiBaseUrl = "http://localhost:7001";
-        viewModel.RequestMethod = "POST";
-        viewModel.RequestPath = "/custom/cart/items";
-        viewModel.RequestBody = """
-                                {
-                                  "sku": "NOTE-A5-GRID",
-                                  "quantity": 3
-                                }
-                                """;
+        var viewModel = MainWindowViewModel.CreateDefault();
+        viewModel.SelectedProduct = viewModel.Products.Single(product => product.Sku == "MUG-STEEL-350");
+        viewModel.SelectedQuantity = 2;
+        viewModel.AddSelectedProductCommand.Execute(null);
+        viewModel.CustomerName = "Kim Minsoo";
+        viewModel.ShippingAddress = "Seoul Mapo";
+        viewModel.PaymentMethod = "Card";
 
-        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+        viewModel.PlaceOrderCommand.Execute(null);
 
-        Assert.Contains("Request URL: http://localhost:7001/custom/cart/items", viewModel.OutputText);
-        Assert.Contains("A5 Grid Notebook x 3", viewModel.OutputText);
-        Assert.Contains("Cart total: 27,000", viewModel.OutputText);
-        Assert.DoesNotContain("Black T-Shirt M x 1", viewModel.OutputText);
+        Assert.Empty(viewModel.CartLines);
+        Assert.Equal("Order #1001", viewModel.LatestOrderNumber);
+        Assert.Equal("Paid", viewModel.LatestOrderStatus);
+        Assert.Equal(36000m, viewModel.LatestOrderTotal);
+        Assert.Contains("Order #1001 placed by Kim Minsoo", viewModel.ConsoleText);
+        Assert.Contains("Payment accepted by Card", viewModel.ConsoleText);
     }
 
     [Fact]
-    public void MainWindowViewModel_UsesEditableStatusAndPaymentPayloads()
+    public void MainWindowViewModel_RejectsCheckoutWithoutCustomerAndCart()
     {
-        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
-        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Add T-Shirt to Cart");
-        viewModel.ExecuteSelectedOperationCommand.Execute(null);
-        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Checkout Cart");
-        viewModel.RequestBody = """
-                                {
-                                  "customerId": 77,
-                                  "items": "current cart"
-                                }
-                                """;
-        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+        var viewModel = MainWindowViewModel.CreateDefault();
 
-        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Confirm Latest Order");
-        viewModel.RequestBody = """
-                                {
-                                  "status": "Preparing"
-                                }
-                                """;
-        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+        viewModel.PlaceOrderCommand.Execute(null);
+        Assert.Contains("Cannot place order because the cart is empty", viewModel.ConsoleText);
 
-        Assert.Contains("Customer #77", viewModel.OutputText);
-        Assert.Contains("Preparing", viewModel.OutputText);
+        viewModel.AddSelectedProductCommand.Execute(null);
+        viewModel.CustomerName = "";
+        viewModel.PlaceOrderCommand.Execute(null);
 
-        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Record Card Payment");
-        viewModel.RequestBody = """
-                                {
-                                  "paymentMethod": "BankTransfer",
-                                  "status": "Authorized"
-                                }
-                                """;
-        viewModel.ExecuteSelectedOperationCommand.Execute(null);
-
-        Assert.Contains("BankTransfer Authorized", viewModel.OutputText);
+        Assert.Contains("Customer name is required", viewModel.ConsoleText);
     }
 
     [Fact]
-    public void MainWindowViewModel_CanClearOutputConsole()
+    public void MainWindowViewModel_CanClearShoppingConsole()
     {
-        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
+        var viewModel = MainWindowViewModel.CreateDefault();
 
-        viewModel.ExecuteSelectedOperationCommand.Execute(null);
-        viewModel.ClearOutputCommand.Execute(null);
+        viewModel.AddSelectedProductCommand.Execute(null);
+        viewModel.ClearConsoleCommand.Execute(null);
 
-        Assert.Contains("Output cleared", viewModel.OutputText);
+        Assert.Equal("Shopping console cleared.", viewModel.ConsoleText);
     }
 
     [Fact]

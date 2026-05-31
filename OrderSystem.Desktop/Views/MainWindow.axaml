@@ -4,193 +4,289 @@
         x:Class="OrderSystem.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
-        Width="1120"
-        Height="720"
-        MinWidth="920"
-        MinHeight="600"
+        Width="1180"
+        Height="760"
+        MinWidth="980"
+        MinHeight="640"
         Background="#F4F6F8">
   <Grid RowDefinitions="64,*">
     <Border Background="#FFFFFF"
             BorderBrush="#D8DEE6"
             BorderThickness="0,0,0,1"
             Padding="20,0">
-      <DockPanel LastChildFill="False">
-        <StackPanel DockPanel.Dock="Left"
-                    VerticalAlignment="Center"
-                    Spacing="2">
-          <TextBlock Text="{Binding Title}"
-                     FontSize="20"
-                     FontWeight="SemiBold"
-                     Foreground="#111827" />
-          <TextBlock Text="{Binding WorkspaceTitle}"
-                     FontSize="12"
-                     Foreground="#64748B" />
-        </StackPanel>
-        <TextBox DockPanel.Dock="Right"
-                 Text="{Binding ApiBaseUrl, Mode=TwoWay}"
-                 Width="360"
-                 VerticalAlignment="Center"
-                 FontSize="13"
-                 Background="#F8FAFC"
-                 Foreground="#111827"
-                 BorderBrush="#CBD5E1"
-                 BorderThickness="1"
-                 Padding="10,6" />
-      </DockPanel>
+      <StackPanel VerticalAlignment="Center"
+                  Spacing="2">
+        <TextBlock Text="{Binding Title}"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Foreground="#111827" />
+        <TextBlock Text="{Binding WorkspaceTitle}"
+                   FontSize="12"
+                   Foreground="#64748B" />
+      </StackPanel>
     </Border>
 
     <Grid Grid.Row="1"
-          ColumnDefinitions="420,*"
-          ColumnSpacing="18"
+          ColumnDefinitions="390,360,*"
+          ColumnSpacing="16"
           Margin="18">
       <Border Background="#FFFFFF"
               BorderBrush="#D8DEE6"
               BorderThickness="1"
               CornerRadius="6"
-              Padding="18">
+              Padding="16">
         <Grid RowDefinitions="Auto,*,Auto"
-              RowSpacing="14">
-          <StackPanel Spacing="4">
-            <TextBlock Text="{Binding OperationConsoleTitle}"
-                       FontSize="18"
-                       FontWeight="SemiBold"
-                       Foreground="#111827" />
-            <TextBlock Text="Catalog, cart, order, payment, inventory"
-                       FontSize="12"
-                       Foreground="#64748B" />
-          </StackPanel>
+              RowSpacing="12">
+          <TextBlock Text="{Binding CatalogTitle}"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Foreground="#111827" />
 
-          <Grid Grid.Row="1"
-                RowDefinitions="240,Auto,*"
-                RowSpacing="12">
-            <ListBox ItemsSource="{Binding Operations}"
-                     SelectedItem="{Binding SelectedOperation}"
-                     Background="#F8FAFC"
-                     BorderBrush="#D8DEE6"
-                     BorderThickness="1"
-                     CornerRadius="4">
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:ConsoleOperationViewModel">
-                  <Grid ColumnDefinitions="96,*"
-                        Height="38"
-                        Margin="4">
-                    <TextBlock Text="{Binding Method}"
-                               VerticalAlignment="Center"
+          <ListBox Grid.Row="1"
+                   ItemsSource="{Binding Products}"
+                   SelectedItem="{Binding SelectedProduct}"
+                   Background="#F8FAFC"
+                   BorderBrush="#D8DEE6"
+                   BorderThickness="1"
+                   CornerRadius="4">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:ProductViewModel">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto"
+                      Margin="8"
+                      RowSpacing="4"
+                      MinHeight="96">
+                  <DockPanel LastChildFill="True">
+                    <TextBlock Text="{Binding PriceText}"
+                               DockPanel.Dock="Right"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#047857" />
+                    <TextBlock Text="{Binding Name}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#111827"
+                               TextWrapping="Wrap" />
+                  </DockPanel>
+                  <TextBlock Grid.Row="1"
+                             Text="{Binding Category}"
+                             FontSize="11"
+                             Foreground="#475569" />
+                  <TextBlock Grid.Row="2"
+                             Text="{Binding Description}"
+                             FontSize="12"
+                             Foreground="#64748B"
+                             TextWrapping="Wrap" />
+                  <DockPanel Grid.Row="3"
+                             LastChildFill="False">
+                    <TextBlock Text="{Binding Sku}"
+                               FontSize="11"
+                               Foreground="#64748B" />
+                    <TextBlock Text="{Binding StockText}"
+                               DockPanel.Dock="Right"
+                               FontSize="11"
                                FontWeight="SemiBold"
                                Foreground="#0369A1" />
-                    <StackPanel Grid.Column="1"
-                                VerticalAlignment="Center"
-                                Spacing="1">
-                      <TextBlock Text="{Binding Name}"
-                                 FontSize="13"
-                                 Foreground="#111827" />
-                      <TextBlock Text="{Binding Path}"
-                                 FontSize="11"
-                                 Foreground="#64748B" />
-                    </StackPanel>
-                  </Grid>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-
-            <Grid Grid.Row="1"
-                  ColumnDefinitions="96,*"
-                  ColumnSpacing="8">
-              <TextBox Text="{Binding RequestMethod, Mode=TwoWay}"
-                       FontSize="13"
-                       FontWeight="SemiBold"
-                       Background="#EFF6FF"
-                       Foreground="#0369A1"
-                       BorderBrush="#BFDBFE"
-                       BorderThickness="1"
-                       Padding="10,6" />
-              <TextBox Grid.Column="1"
-                       Text="{Binding RequestPath, Mode=TwoWay}"
-                       FontSize="13"
-                       Background="#F8FAFC"
-                       Foreground="#111827"
-                       BorderBrush="#CBD5E1"
-                       BorderThickness="1"
-                       Padding="10,6" />
-            </Grid>
-
-            <Grid Grid.Row="2"
-                  RowDefinitions="Auto,*"
-                  RowSpacing="6">
-              <TextBlock Text="Action Payload"
-                         FontSize="12"
-                         Foreground="#475569" />
-              <TextBox Grid.Row="1"
-                       Text="{Binding RequestBody, Mode=TwoWay}"
-                       AcceptsReturn="True"
-                       TextWrapping="Wrap"
-                       FontFamily="Menlo,Consolas,monospace"
-                       FontSize="13"
-                       Background="#0F172A"
-                       Foreground="#E2E8F0"
-                       BorderThickness="0"
-                       Padding="12"
-                       MinHeight="220" />
-            </Grid>
-          </Grid>
+                  </DockPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
 
           <Grid Grid.Row="2"
-                ColumnDefinitions="*,Auto"
-                ColumnSpacing="10">
-            <Button Content="Run Action"
-                    Command="{Binding ExecuteSelectedOperationCommand}"
-                    MinHeight="36" />
-            <Button Grid.Column="1"
-                    Content="Clear Activity"
-                    Command="{Binding ClearOutputCommand}"
-                    MinHeight="36"
-                    MinWidth="108" />
+                RowDefinitions="Auto,Auto"
+                RowSpacing="10">
+            <Grid ColumnDefinitions="Auto,44,Auto,*"
+                  ColumnSpacing="8"
+                  VerticalAlignment="Center">
+              <Button Content="-"
+                      Command="{Binding DecreaseSelectedQuantityCommand}"
+                      MinWidth="36"
+                      MinHeight="34" />
+              <TextBox Grid.Column="1"
+                       Text="{Binding SelectedQuantity}"
+                       HorizontalContentAlignment="Center"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Background="#F8FAFC"
+                       BorderBrush="#CBD5E1"
+                       BorderThickness="1" />
+              <Button Grid.Column="2"
+                      Content="+"
+                      Command="{Binding IncreaseSelectedQuantityCommand}"
+                      MinWidth="36"
+                      MinHeight="34" />
+              <Button Grid.Column="3"
+                      Content="Add To Cart"
+                      Command="{Binding AddSelectedProductCommand}"
+                      MinHeight="34" />
+            </Grid>
+            <TextBlock Grid.Row="1"
+                       Text="{Binding SelectedProduct.Description}"
+                       FontSize="12"
+                       Foreground="#64748B"
+                       TextWrapping="Wrap" />
           </Grid>
         </Grid>
       </Border>
 
       <Border Grid.Column="1"
+              Background="#FFFFFF"
+              BorderBrush="#D8DEE6"
+              BorderThickness="1"
+              CornerRadius="6"
+              Padding="16">
+        <Grid RowDefinitions="Auto,*,Auto,Auto"
+              RowSpacing="12">
+          <TextBlock Text="{Binding CartTitle}"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Foreground="#111827" />
+
+          <ListBox Grid.Row="1"
+                   ItemsSource="{Binding CartLines}"
+                   SelectedItem="{Binding SelectedCartLine}"
+                   Background="#F8FAFC"
+                   BorderBrush="#D8DEE6"
+                   BorderThickness="1"
+                   CornerRadius="4">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:CartLineViewModel">
+                <Grid ColumnDefinitions="*,Auto"
+                      RowDefinitions="Auto,Auto"
+                      Margin="8"
+                      RowSpacing="4"
+                      MinHeight="54">
+                  <TextBlock Text="{Binding ProductName}"
+                             FontSize="13"
+                             FontWeight="SemiBold"
+                             Foreground="#111827"
+                             TextWrapping="Wrap" />
+                  <TextBlock Grid.Column="1"
+                             Text="{Binding LineTotalText}"
+                             FontSize="13"
+                             FontWeight="SemiBold"
+                             Foreground="#047857" />
+                  <TextBlock Grid.Row="1"
+                             Text="{Binding Sku}"
+                             FontSize="11"
+                             Foreground="#64748B" />
+                  <TextBlock Grid.Row="1"
+                             Grid.Column="1"
+                             Text="{Binding Quantity}"
+                             FontSize="12"
+                             Foreground="#475569" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <Grid Grid.Row="2"
+                RowDefinitions="Auto,Auto"
+                RowSpacing="8">
+            <TextBlock Text="{Binding CartSummary}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#111827"
+                       TextWrapping="Wrap" />
+            <Grid Grid.Row="1"
+                  ColumnDefinitions="*,*,*"
+                  ColumnSpacing="8">
+              <Button Content="-"
+                      Command="{Binding DecreaseSelectedCartLineCommand}"
+                      MinHeight="34" />
+              <Button Grid.Column="1"
+                      Content="+"
+                      Command="{Binding IncreaseSelectedCartLineCommand}"
+                      MinHeight="34" />
+              <Button Grid.Column="2"
+                      Content="Remove"
+                      Command="{Binding RemoveSelectedCartLineCommand}"
+                      MinHeight="34" />
+            </Grid>
+          </Grid>
+
+          <Grid Grid.Row="3"
+                RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                RowSpacing="8">
+            <TextBlock Text="{Binding CheckoutTitle}"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#111827" />
+            <TextBox Grid.Row="1"
+                     Text="{Binding CustomerName}"
+                     Background="#F8FAFC"
+                     BorderBrush="#CBD5E1"
+                     BorderThickness="1"
+                     Padding="10,6" />
+            <TextBox Grid.Row="2"
+                     Text="{Binding ShippingAddress}"
+                     Background="#F8FAFC"
+                     BorderBrush="#CBD5E1"
+                     BorderThickness="1"
+                     Padding="10,6" />
+            <ComboBox Grid.Row="3"
+                      ItemsSource="{Binding PaymentMethods}"
+                      SelectedItem="{Binding PaymentMethod}"
+                      Background="#F8FAFC"
+                      BorderBrush="#CBD5E1"
+                      BorderThickness="1"
+                      Padding="8,4" />
+            <Grid Grid.Row="4"
+                  ColumnDefinitions="*,Auto"
+                  ColumnSpacing="8">
+              <Button Content="Place Order"
+                      Command="{Binding PlaceOrderCommand}"
+                      MinHeight="36" />
+              <Button Grid.Column="1"
+                      Content="Clear Cart"
+                      Command="{Binding ClearCartCommand}"
+                      MinHeight="36"
+                      MinWidth="96" />
+            </Grid>
+          </Grid>
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="2"
               Background="#0B1120"
               BorderBrush="#1E293B"
               BorderThickness="1"
               CornerRadius="6"
               Padding="18">
-        <Grid RowDefinitions="Auto,Auto,*"
+        <Grid RowDefinitions="Auto,Auto,*,Auto"
               RowSpacing="12">
-          <DockPanel LastChildFill="True">
-            <StackPanel DockPanel.Dock="Left"
-                        Spacing="4">
-              <TextBlock Text="{Binding OutputConsoleTitle}"
-                         FontSize="18"
-                         FontWeight="SemiBold"
-                         Foreground="#F8FAFC" />
-              <TextBlock Text="Mini storefront state"
-                         FontSize="12"
-                         Foreground="#94A3B8" />
-            </StackPanel>
-          </DockPanel>
+          <StackPanel Spacing="4">
+            <TextBlock Text="{Binding ConsoleTitle}"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#F8FAFC" />
+            <TextBlock Text="{Binding LatestOrderSummary}"
+                       FontSize="12"
+                       Foreground="#BAE6FD"
+                       TextWrapping="Wrap" />
+          </StackPanel>
 
-          <StackPanel Grid.Row="1"
-                      Spacing="4">
+          <Grid Grid.Row="1"
+                RowDefinitions="Auto,Auto,Auto"
+                RowSpacing="4">
             <TextBlock Text="{Binding CartSummary}"
                        FontSize="12"
                        FontWeight="SemiBold"
-                       TextWrapping="Wrap"
-                       Foreground="#A7F3D0" />
-            <TextBlock Text="{Binding LatestOrderSummary}"
+                       Foreground="#A7F3D0"
+                       TextWrapping="Wrap" />
+            <TextBlock Grid.Row="1"
+                       Text="{Binding LatestOrderNumber}"
                        FontSize="12"
                        FontWeight="SemiBold"
-                       TextWrapping="Wrap"
-                       Foreground="#BAE6FD" />
-            <TextBlock Text="{Binding InventorySummary}"
-                       FontSize="12"
-                       FontWeight="SemiBold"
-                       TextWrapping="Wrap"
                        Foreground="#FDE68A" />
-          </StackPanel>
+            <TextBlock Grid.Row="2"
+                       Text="{Binding LatestOrderStatus}"
+                       FontSize="12"
+                       Foreground="#CBD5E1" />
+          </Grid>
 
           <TextBox Grid.Row="2"
-                   Text="{Binding OutputText}"
+                   Text="{Binding ConsoleText}"
                    AcceptsReturn="True"
                    IsReadOnly="True"
                    TextWrapping="Wrap"
@@ -200,6 +296,13 @@
                    Foreground="#D1FAE5"
                    BorderThickness="0"
                    Padding="14" />
+
+          <Button Grid.Row="3"
+                  Content="Clear Console"
+                  Command="{Binding ClearConsoleCommand}"
+                  HorizontalAlignment="Right"
+                  MinHeight="34"
+                  MinWidth="124" />
         </Grid>
       </Border>
     </Grid>
