@@ -14,7 +14,7 @@
             BorderBrush="#D8DEE6"
             BorderThickness="0,0,0,1"
             Padding="20,0">
-      <DockPanel LastChildFill="True">
+      <DockPanel LastChildFill="False">
         <StackPanel DockPanel.Dock="Left"
                     VerticalAlignment="Center"
                     Spacing="2">
@@ -26,11 +26,16 @@
                      FontSize="12"
                      Foreground="#64748B" />
         </StackPanel>
-        <TextBlock Text="{Binding ApiBaseUrl}"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Center"
-                   FontSize="13"
-                   Foreground="#475569" />
+        <TextBox DockPanel.Dock="Right"
+                 Text="{Binding ApiBaseUrl, Mode=TwoWay}"
+                 Width="360"
+                 VerticalAlignment="Center"
+                 FontSize="13"
+                 Background="#F8FAFC"
+                 Foreground="#111827"
+                 BorderBrush="#CBD5E1"
+                 BorderThickness="1"
+                 Padding="10,6" />
       </DockPanel>
     </Border>
 
@@ -50,13 +55,13 @@
                        FontSize="18"
                        FontWeight="SemiBold"
                        Foreground="#111827" />
-            <TextBlock Text="Choose a REST operation and stage its request body."
+            <TextBlock Text="Catalog, cart, order, payment, inventory"
                        FontSize="12"
                        Foreground="#64748B" />
           </StackPanel>
 
           <Grid Grid.Row="1"
-                RowDefinitions="190,*"
+                RowDefinitions="240,Auto,*"
                 RowSpacing="12">
             <ListBox ItemsSource="{Binding Operations}"
                      SelectedItem="{Binding SelectedOperation}"
@@ -89,13 +94,34 @@
             </ListBox>
 
             <Grid Grid.Row="1"
+                  ColumnDefinitions="96,*"
+                  ColumnSpacing="8">
+              <TextBox Text="{Binding RequestMethod, Mode=TwoWay}"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Background="#EFF6FF"
+                       Foreground="#0369A1"
+                       BorderBrush="#BFDBFE"
+                       BorderThickness="1"
+                       Padding="10,6" />
+              <TextBox Grid.Column="1"
+                       Text="{Binding RequestPath, Mode=TwoWay}"
+                       FontSize="13"
+                       Background="#F8FAFC"
+                       Foreground="#111827"
+                       BorderBrush="#CBD5E1"
+                       BorderThickness="1"
+                       Padding="10,6" />
+            </Grid>
+
+            <Grid Grid.Row="2"
                   RowDefinitions="Auto,*"
                   RowSpacing="6">
-              <TextBlock Text="Request Body"
+              <TextBlock Text="Action Payload"
                          FontSize="12"
                          Foreground="#475569" />
               <TextBox Grid.Row="1"
-                       Text="{Binding RequestBody}"
+                       Text="{Binding RequestBody, Mode=TwoWay}"
                        AcceptsReturn="True"
                        TextWrapping="Wrap"
                        FontFamily="Menlo,Consolas,monospace"
@@ -111,11 +137,11 @@
           <Grid Grid.Row="2"
                 ColumnDefinitions="*,Auto"
                 ColumnSpacing="10">
-            <Button Content="Stage Operation"
+            <Button Content="Run Action"
                     Command="{Binding ExecuteSelectedOperationCommand}"
                     MinHeight="36" />
             <Button Grid.Column="1"
-                    Content="Clear Output"
+                    Content="Clear Activity"
                     Command="{Binding ClearOutputCommand}"
                     MinHeight="36"
                     MinWidth="108" />
@@ -129,7 +155,7 @@
               BorderThickness="1"
               CornerRadius="6"
               Padding="18">
-        <Grid RowDefinitions="Auto,*"
+        <Grid RowDefinitions="Auto,Auto,*"
               RowSpacing="12">
           <DockPanel LastChildFill="True">
             <StackPanel DockPanel.Dock="Left"
@@ -138,13 +164,32 @@
                          FontSize="18"
                          FontWeight="SemiBold"
                          Foreground="#F8FAFC" />
-              <TextBlock Text="Staged operation output and API execution log."
+              <TextBlock Text="Mini storefront state"
                          FontSize="12"
                          Foreground="#94A3B8" />
             </StackPanel>
           </DockPanel>
 
-          <TextBox Grid.Row="1"
+          <StackPanel Grid.Row="1"
+                      Spacing="4">
+            <TextBlock Text="{Binding CartSummary}"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       Foreground="#A7F3D0" />
+            <TextBlock Text="{Binding LatestOrderSummary}"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       Foreground="#BAE6FD" />
+            <TextBlock Text="{Binding InventorySummary}"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       Foreground="#FDE68A" />
+          </StackPanel>
+
+          <TextBox Grid.Row="2"
                    Text="{Binding OutputText}"
                    AcceptsReturn="True"
                    IsReadOnly="True"

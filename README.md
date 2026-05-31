@@ -66,7 +66,7 @@ SQL Server 기준 DB 재현 스크립트는 [database/README.md](database/README
 
 REST API 세부 계약은 [Docs/rest-api.md](Docs/rest-api.md)에 정리되어 있다. 서버 실행 후 Swagger UI는 `/swagger`에서 확인한다.
 
-Avalonia GUI 준비 내용은 [Docs/gui.md](Docs/gui.md)에 정리되어 있다. `OrderSystem.Desktop`은 REST API와 연결할 데스크톱 셸, 메인 윈도우, ViewModel 구조를 포함한다.
+Avalonia GUI 준비 내용은 [Docs/gui.md](Docs/gui.md)에 정리되어 있다. `OrderSystem.Desktop`은 REST API와 연결할 데스크톱 셸, 메인 윈도우, ViewModel 구조를 포함한다. 현재 GUI는 카탈로그 조회, 장바구니 담기, 주문 생성, 상태 변경, 결제 기록, 재고 확인을 출력 콘솔 안의 미니 쇼핑몰 상태로 보여 준다. 사용자는 API base URL, method, path, JSON body를 직접 바꿔 요청 값을 결정할 수 있다.
 솔루션의 첫 프로젝트는 `OrderSystem.Desktop`으로 배치해 기본 실행 진입점 후보가 GUI 앱이 되도록 했다.
 
 ## 주문 생성 예시

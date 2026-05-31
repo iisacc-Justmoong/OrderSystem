@@ -9,7 +9,7 @@ public sealed class DesktopBootstrapTests
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
 
     [Fact]
-    public void MainWindowViewModel_ProvidesSingleOperationAndOutputConsole()
+    public void MainWindowViewModel_ProvidesShoppingOperationsAndOutputConsole()
     {
         var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
 
@@ -18,23 +18,110 @@ public sealed class DesktopBootstrapTests
         Assert.Equal("http://localhost:5184", viewModel.ApiBaseUrl);
         Assert.Equal("Operation Console", viewModel.OperationConsoleTitle);
         Assert.Equal("Output Console", viewModel.OutputConsoleTitle);
-        Assert.Contains(viewModel.Operations, operation => operation.Name == "Create Product");
-        Assert.Contains(viewModel.Operations, operation => operation.Name == "Create Order");
-        Assert.Contains(viewModel.Operations, operation => operation.Name == "Adjust Inventory");
+        Assert.Contains(viewModel.Operations, operation => operation.Name == "Browse Catalog");
+        Assert.Contains(viewModel.Operations, operation => operation.Name == "Add T-Shirt to Cart");
+        Assert.Contains(viewModel.Operations, operation => operation.Name == "Checkout Cart");
+        Assert.Contains(viewModel.Operations, operation => operation.Name == "Confirm Latest Order");
+        Assert.Contains(viewModel.Operations, operation => operation.Name == "Record Card Payment");
+        Assert.Contains(viewModel.Operations, operation => operation.Method == "GET");
+        Assert.Contains(viewModel.Operations, operation => operation.Method == "POST");
+        Assert.Contains(viewModel.Operations, operation => operation.Method == "PATCH");
         Assert.NotNull(viewModel.SelectedOperation);
-        Assert.Contains("\"sku\"", viewModel.RequestBody);
-        Assert.Contains("Ready", viewModel.OutputText);
+        Assert.Equal("GET", viewModel.RequestMethod);
+        Assert.Equal("/api/products", viewModel.RequestPath);
+        Assert.Contains("Mini Storefront", viewModel.OutputText);
+        Assert.Contains("Catalog", viewModel.OutputText);
     }
 
     [Fact]
-    public void MainWindowViewModel_RecordsSelectedOperationInOutputConsole()
+    public void MainWindowViewModel_SelectionChangesOutputConsoleScreen()
     {
         var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
+        var ordersOperation = viewModel.Operations.Single(operation => operation.Name == "View Orders");
+
+        viewModel.SelectedOperation = ordersOperation;
+
+        Assert.Contains("Orders", viewModel.OutputText);
+        Assert.Contains("No submitted orders", viewModel.OutputText);
+    }
+
+    [Fact]
+    public void MainWindowViewModel_ExecutesCartAndCheckoutAsMiniStorefront()
+    {
+        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
+        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Add T-Shirt to Cart");
+        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+
+        Assert.Contains("Black T-Shirt M x 1", viewModel.OutputText);
+        Assert.Contains("Cart total: 29,000", viewModel.OutputText);
+
+        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Checkout Cart");
+        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+
+        Assert.Contains("Order #1001", viewModel.OutputText);
+        Assert.Contains("Pending", viewModel.OutputText);
+        Assert.Contains("Cart: empty", viewModel.OutputText);
+    }
+
+    [Fact]
+    public void MainWindowViewModel_UsesEditableRequestValuesWhenRunningCartAction()
+    {
+        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
+        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Add T-Shirt to Cart");
+        viewModel.ApiBaseUrl = "http://localhost:7001";
+        viewModel.RequestMethod = "POST";
+        viewModel.RequestPath = "/custom/cart/items";
+        viewModel.RequestBody = """
+                                {
+                                  "sku": "NOTE-A5-GRID",
+                                  "quantity": 3
+                                }
+                                """;
 
         viewModel.ExecuteSelectedOperationCommand.Execute(null);
 
-        Assert.Contains("POST /api/products", viewModel.OutputText);
-        Assert.Contains("Request Body", viewModel.OutputText);
+        Assert.Contains("Request URL: http://localhost:7001/custom/cart/items", viewModel.OutputText);
+        Assert.Contains("A5 Grid Notebook x 3", viewModel.OutputText);
+        Assert.Contains("Cart total: 27,000", viewModel.OutputText);
+        Assert.DoesNotContain("Black T-Shirt M x 1", viewModel.OutputText);
+    }
+
+    [Fact]
+    public void MainWindowViewModel_UsesEditableStatusAndPaymentPayloads()
+    {
+        var viewModel = MainWindowViewModel.CreateDefault("http://localhost:5184");
+        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Add T-Shirt to Cart");
+        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Checkout Cart");
+        viewModel.RequestBody = """
+                                {
+                                  "customerId": 77,
+                                  "items": "current cart"
+                                }
+                                """;
+        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+
+        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Confirm Latest Order");
+        viewModel.RequestBody = """
+                                {
+                                  "status": "Preparing"
+                                }
+                                """;
+        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+
+        Assert.Contains("Customer #77", viewModel.OutputText);
+        Assert.Contains("Preparing", viewModel.OutputText);
+
+        viewModel.SelectedOperation = viewModel.Operations.Single(operation => operation.Name == "Record Card Payment");
+        viewModel.RequestBody = """
+                                {
+                                  "paymentMethod": "BankTransfer",
+                                  "status": "Authorized"
+                                }
+                                """;
+        viewModel.ExecuteSelectedOperationCommand.Execute(null);
+
+        Assert.Contains("BankTransfer Authorized", viewModel.OutputText);
     }
 
     [Fact]
