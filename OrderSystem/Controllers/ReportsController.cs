@@ -23,7 +23,7 @@ public sealed class ReportsController(OrderService orderService) : ControllerBas
         }
         catch (DomainException exception)
         {
-            return Problem(statusCode: exception.StatusCode, title: exception.Message);
+            return this.ToActionResult<IReadOnlyList<DailySalesResponse>>(exception);
         }
     }
 }

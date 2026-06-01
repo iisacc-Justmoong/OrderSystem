@@ -130,7 +130,7 @@ public sealed class OrderService(AppDbContext dbContext)
 
     public async Task<OrderResponse?> GetOrderAsync(long id, CancellationToken cancellationToken = default)
     {
-        var order = await IncludeOrderGraph(_dbContext.Orders)
+        var order = await IncludeOrderGraph(_dbContext.Orders.AsNoTracking())
             .FirstOrDefaultAsync(order => order.Id == id, cancellationToken);
 
         return order?.ToResponse();
@@ -142,7 +142,7 @@ public sealed class OrderService(AppDbContext dbContext)
         DateTime? to,
         CancellationToken cancellationToken = default)
     {
-        var query = IncludeOrderGraph(_dbContext.Orders).AsQueryable();
+        var query = IncludeOrderGraph(_dbContext.Orders.AsNoTracking()).AsQueryable();
 
         if (status is not null)
         {
@@ -306,6 +306,7 @@ public sealed class OrderService(AppDbContext dbContext)
         }
 
         var payments = await _dbContext.Payments
+            .AsNoTracking()
             .Where(payment => payment.OrderId == orderId)
             .OrderBy(payment => payment.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -327,6 +328,7 @@ public sealed class OrderService(AppDbContext dbContext)
         var toDateTime = to.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
         var orders = await _dbContext.Orders
+            .AsNoTracking()
             .Include(order => order.Items)
             .Where(order => order.Status != OrderStatus.Cancelled)
             .Where(order => order.CreatedAt >= fromDateTime && order.CreatedAt < toDateTime)

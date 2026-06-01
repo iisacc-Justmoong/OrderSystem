@@ -56,11 +56,18 @@ GET    /api/reports/daily-sales
 
 응답은 `orderId`, `orderNumber`, `status`, `totalAmount`, `items`를 반환한다. enum은 JSON에서 `"Pending"` 같은 문자열로 표시한다.
 
+## 입력 정규화
+
+컨트롤러는 외부 요청 문자열을 그대로 저장하지 않고 업무 키 기준으로 정규화한다.
+
+- `POST /api/customers`: `name`, `phone`은 앞뒤 공백을 제거하고 `email`은 앞뒤 공백 제거 후 소문자로 저장한다. 이미 같은 정규화 이메일이 있으면 `409 Conflict`를 반환한다.
+- `POST /api/products`, `PUT /api/products/{id}`: `sku`, `name`, `description`은 앞뒤 공백을 제거한다. 이미 같은 정규화 SKU가 있으면 `409 Conflict`를 반환한다.
+
 ## 에러 응답
 
 - `400 Bad Request`: 요청 값이 잘못되었거나 재고가 부족하다.
 - `404 Not Found`: 상품, 고객, 주문, 재고 같은 리소스가 없다.
-- `409 Conflict`: 현재 상태상 처리할 수 없다. 예를 들어 배송된 주문 취소나 허용되지 않은 상태 전이가 여기에 해당한다.
+- `409 Conflict`: 현재 상태상 처리할 수 없거나 업무 키가 중복된다. 예를 들어 배송된 주문 취소, 허용되지 않은 상태 전이, 고객 이메일 중복, 상품 SKU 중복이 여기에 해당한다.
 - `500 Server Error`: 처리하지 못한 서버 내부 오류다.
 
 ## Swagger

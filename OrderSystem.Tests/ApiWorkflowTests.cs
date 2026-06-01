@@ -98,6 +98,102 @@ public sealed class ApiWorkflowTests
     }
 
     [Fact]
+    public async Task RestApi_NormalizesCustomerEmailAndRejectsDuplicateEmail()
+    {
+        await using var factory = new TestApplicationFactory();
+        var client = factory.CreateClient();
+
+        var customer = await PostJsonAsync(client, "/api/customers", new
+        {
+            name = "  Retail Customer  ",
+            email = "  Retail.Customer@Example.COM  ",
+            phone = "  010-2222-3333  "
+        }, HttpStatusCode.Created);
+        var customerId = customer.GetProperty("id").GetInt64();
+
+        Assert.Equal("Retail Customer", customer.GetProperty("name").GetString());
+        Assert.Equal("retail.customer@example.com", customer.GetProperty("email").GetString());
+        Assert.Equal("010-2222-3333", customer.GetProperty("phone").GetString());
+
+        var loadedCustomer = await GetJsonAsync(client, $"/api/customers/{customerId}", HttpStatusCode.OK);
+        Assert.Equal("retail.customer@example.com", loadedCustomer.GetProperty("email").GetString());
+
+        var duplicateResponse = await client.PostAsJsonAsync("/api/customers", new
+        {
+            name = "Duplicate Retail Customer",
+            email = "RETAIL.CUSTOMER@example.com",
+            phone = "010-4444-5555"
+        });
+
+        Assert.Equal(HttpStatusCode.Conflict, duplicateResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task RestApi_NormalizesProductSkuAndRejectsDuplicates()
+    {
+        await using var factory = new TestApplicationFactory();
+        var client = factory.CreateClient();
+
+        var firstProduct = await PostJsonAsync(client, "/api/products", new
+        {
+            sku = "  SKU-DUPLICATE  ",
+            name = "  Duplicate Test Product  ",
+            description = "  Duplicate product description  ",
+            price = 100m,
+            isActive = true,
+            initialStockQuantity = 0
+        }, HttpStatusCode.Created);
+
+        Assert.Equal("SKU-DUPLICATE", firstProduct.GetProperty("sku").GetString());
+        Assert.Equal("Duplicate Test Product", firstProduct.GetProperty("name").GetString());
+        Assert.Equal("Duplicate product description", firstProduct.GetProperty("description").GetString());
+
+        var duplicateCreateResponse = await client.PostAsJsonAsync("/api/products", new
+        {
+            sku = "SKU-DUPLICATE",
+            name = "Another Product",
+            description = "Another duplicate product description",
+            price = 100m,
+            isActive = true,
+            initialStockQuantity = 0
+        });
+        Assert.Equal(HttpStatusCode.Conflict, duplicateCreateResponse.StatusCode);
+
+        var secondProduct = await PostJsonAsync(client, "/api/products", new
+        {
+            sku = "SKU-SECOND",
+            name = "Second Product",
+            description = "Second product description",
+            price = 200m,
+            isActive = true,
+            initialStockQuantity = 0
+        }, HttpStatusCode.Created);
+        var secondProductId = secondProduct.GetProperty("id").GetInt64();
+
+        var duplicateUpdateResponse = await client.PutAsJsonAsync($"/api/products/{secondProductId}", new
+        {
+            sku = "  SKU-DUPLICATE  ",
+            name = "Second Product Renamed",
+            description = "Second product description",
+            price = 200m,
+            isActive = true
+        });
+
+        Assert.Equal(HttpStatusCode.Conflict, duplicateUpdateResponse.StatusCode);
+
+        var missingProductUpdateResponse = await client.PutAsJsonAsync("/api/products/999999", new
+        {
+            sku = "SKU-DUPLICATE",
+            name = "Missing Product",
+            description = "Missing product description",
+            price = 100m,
+            isActive = true
+        });
+
+        Assert.Equal(HttpStatusCode.NotFound, missingProductUpdateResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task RestApi_ReturnsConflictWhenCurrentOrderStateBlocksAction()
     {
         await using var factory = new TestApplicationFactory();

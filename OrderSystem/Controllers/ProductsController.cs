@@ -11,19 +11,20 @@ public sealed class ProductsController(ProductService productService) : Controll
     private readonly ProductService _productService = productService;
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<ProductResponse>>> List(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<ProductResponse>>> List(
+        CancellationToken cancellationToken)
     {
         var products = await _productService.ListAsync(cancellationToken);
         return Ok(products);
     }
 
     [HttpGet("{id:long}")]
-    public async Task<ActionResult<ProductResponse>> Get(long id, CancellationToken cancellationToken)
+    public async Task<ActionResult<ProductResponse>> Get(
+        long id,
+        CancellationToken cancellationToken)
     {
         var product = await _productService.GetAsync(id, cancellationToken);
-        return product is null
-            ? NotFound()
-            : Ok(product);
+        return product is null ? NotFound() : Ok(product);
     }
 
     [HttpPost]
@@ -38,7 +39,7 @@ public sealed class ProductsController(ProductService productService) : Controll
         }
         catch (DomainException exception)
         {
-            return ToProblem(exception);
+            return this.ToActionResult<ProductResponse>(exception);
         }
     }
 
@@ -55,12 +56,7 @@ public sealed class ProductsController(ProductService productService) : Controll
         }
         catch (DomainException exception)
         {
-            return ToProblem(exception);
+            return this.ToActionResult<ProductResponse>(exception);
         }
-    }
-
-    private ObjectResult ToProblem(DomainException exception)
-    {
-        return Problem(statusCode: exception.StatusCode, title: exception.Message);
     }
 }

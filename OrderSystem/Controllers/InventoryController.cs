@@ -11,19 +11,20 @@ public sealed class InventoryController(InventoryService inventoryService) : Con
     private readonly InventoryService _inventoryService = inventoryService;
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<InventoryResponse>>> List(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<InventoryResponse>>> List(
+        CancellationToken cancellationToken)
     {
         var inventory = await _inventoryService.ListAsync(cancellationToken);
         return Ok(inventory);
     }
 
     [HttpGet("{productId:long}")]
-    public async Task<ActionResult<InventoryResponse>> Get(long productId, CancellationToken cancellationToken)
+    public async Task<ActionResult<InventoryResponse>> Get(
+        long productId,
+        CancellationToken cancellationToken)
     {
         var inventory = await _inventoryService.GetAsync(productId, cancellationToken);
-        return inventory is null
-            ? NotFound()
-            : Ok(inventory);
+        return inventory is null ? NotFound() : Ok(inventory);
     }
 
     [HttpPost("{productId:long}/adjust")]
@@ -39,7 +40,7 @@ public sealed class InventoryController(InventoryService inventoryService) : Con
         }
         catch (DomainException exception)
         {
-            return Problem(statusCode: exception.StatusCode, title: exception.Message);
+            return this.ToActionResult<InventoryResponse>(exception);
         }
     }
 }

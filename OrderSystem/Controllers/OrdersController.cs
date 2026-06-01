@@ -23,12 +23,12 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
     }
 
     [HttpGet("{id:long}")]
-    public async Task<ActionResult<OrderResponse>> Get(long id, CancellationToken cancellationToken)
+    public async Task<ActionResult<OrderResponse>> Get(
+        long id,
+        CancellationToken cancellationToken)
     {
         var order = await _orderService.GetOrderAsync(id, cancellationToken);
-        return order is null
-            ? NotFound()
-            : Ok(order);
+        return order is null ? NotFound() : Ok(order);
     }
 
     [HttpPost]
@@ -43,7 +43,7 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         }
         catch (DomainException exception)
         {
-            return ToProblem(exception);
+            return this.ToActionResult<OrderResponse>(exception);
         }
     }
 
@@ -60,12 +60,14 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         }
         catch (DomainException exception)
         {
-            return ToProblem(exception);
+            return this.ToActionResult<OrderResponse>(exception);
         }
     }
 
     [HttpPost("{id:long}/cancel")]
-    public async Task<ActionResult<OrderResponse>> Cancel(long id, CancellationToken cancellationToken)
+    public async Task<ActionResult<OrderResponse>> Cancel(
+        long id,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -74,7 +76,7 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         }
         catch (DomainException exception)
         {
-            return ToProblem(exception);
+            return this.ToActionResult<OrderResponse>(exception);
         }
     }
 
@@ -90,7 +92,7 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         }
         catch (DomainException exception)
         {
-            return ToProblem(exception);
+            return this.ToActionResult<IReadOnlyList<PaymentResponse>>(exception);
         }
     }
 
@@ -107,12 +109,7 @@ public sealed class OrdersController(OrderService orderService) : ControllerBase
         }
         catch (DomainException exception)
         {
-            return ToProblem(exception);
+            return this.ToActionResult<PaymentResponse>(exception);
         }
-    }
-
-    private ObjectResult ToProblem(DomainException exception)
-    {
-        return Problem(statusCode: exception.StatusCode, title: exception.Message);
     }
 }

@@ -12,6 +12,7 @@ public sealed class InventoryService(AppDbContext dbContext)
     public async Task<IReadOnlyList<InventoryResponse>> ListAsync(CancellationToken cancellationToken = default)
     {
         var inventory = await _dbContext.Inventories
+            .AsNoTracking()
             .Include(item => item.Product)
             .OrderBy(item => item.ProductId)
             .ToListAsync(cancellationToken);
@@ -22,6 +23,7 @@ public sealed class InventoryService(AppDbContext dbContext)
     public async Task<InventoryResponse?> GetAsync(long productId, CancellationToken cancellationToken = default)
     {
         var inventory = await _dbContext.Inventories
+            .AsNoTracking()
             .Include(item => item.Product)
             .FirstOrDefaultAsync(item => item.ProductId == productId, cancellationToken);
 

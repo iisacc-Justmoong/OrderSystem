@@ -12,6 +12,7 @@ public sealed class ProductService(AppDbContext dbContext)
     public async Task<IReadOnlyList<ProductResponse>> ListAsync(CancellationToken cancellationToken = default)
     {
         var products = await _dbContext.Products
+            .AsNoTracking()
             .Include(product => product.Inventory)
             .OrderBy(product => product.Id)
             .ToListAsync(cancellationToken);
@@ -22,6 +23,7 @@ public sealed class ProductService(AppDbContext dbContext)
     public async Task<ProductResponse?> GetAsync(long id, CancellationToken cancellationToken = default)
     {
         var product = await _dbContext.Products
+            .AsNoTracking()
             .Include(product => product.Inventory)
             .FirstOrDefaultAsync(product => product.Id == id, cancellationToken);
 
@@ -32,14 +34,23 @@ public sealed class ProductService(AppDbContext dbContext)
         CreateProductRequest request,
         CancellationToken cancellationToken = default)
     {
+        var sku = request.Sku.Trim();
+        var skuExists = await _dbContext.Products
+            .AnyAsync(product => product.Sku == sku, cancellationToken);
+
+        if (skuExists)
+        {
+            throw new DomainException("A product with the same SKU already exists.", 409);
+        }
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         var now = DateTime.UtcNow;
         var product = new Product
         {
-            Sku = request.Sku,
-            Name = request.Name,
-            Description = request.Description,
+            Sku = sku,
+            Name = request.Name.Trim(),
+            Description = NormalizeOptionalText(request.Description),
             Price = request.Price,
             IsActive = request.IsActive,
             CreatedAt = now,
@@ -85,9 +96,18 @@ public sealed class ProductService(AppDbContext dbContext)
             throw new DomainException($"Product {id} was not found.", 404);
         }
 
-        product.Sku = request.Sku;
-        product.Name = request.Name;
-        product.Description = request.Description;
+        var sku = request.Sku.Trim();
+        var skuExists = await _dbContext.Products
+            .AnyAsync(product => product.Id != id && product.Sku == sku, cancellationToken);
+
+        if (skuExists)
+        {
+            throw new DomainException("A product with the same SKU already exists.", 409);
+        }
+
+        product.Sku = sku;
+        product.Name = request.Name.Trim();
+        product.Description = NormalizeOptionalText(request.Description);
         product.Price = request.Price;
         product.IsActive = request.IsActive;
         product.UpdatedAt = DateTime.UtcNow;
@@ -95,5 +115,10 @@ public sealed class ProductService(AppDbContext dbContext)
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return product.ToResponse();
+    }
+
+    private static string? NormalizeOptionalText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }
