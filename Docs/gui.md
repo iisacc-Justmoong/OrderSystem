@@ -39,7 +39,7 @@ OrderSystem.Desktop
 현재 개발 환경은 Rider 번들 .NET SDK를 사용한다.
 
 ```bash
-/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet run --project OrderSystem.Desktop/OrderSystem.Desktop.csproj
+/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet run --project src/OrderSystem.Desktop/OrderSystem.Desktop.csproj
 ```
 
 프로젝트 대상 프레임워크는 `net8.0`이지만, `Directory.Build.props`에서 런타임 롤포워드를 `Major`로 설정한다. `build/`로 재빌드한 뒤에는 `/Users/ymy/.dotnet`에 .NET 8 런타임이 없어도 로컬 .NET 9 런타임으로 앱 호스트를 직접 실행할 수 있다.

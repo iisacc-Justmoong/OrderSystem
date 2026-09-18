@@ -7,3 +7,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# Keep the solution entry point with its relocated project paths.
+!OrderSystem.sln

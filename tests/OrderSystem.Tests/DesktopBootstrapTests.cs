@@ -115,7 +115,7 @@ public sealed class DesktopBootstrapTests
         var solution = File.ReadAllText(Path.Combine(RepositoryRoot, "OrderSystem.sln"));
 
         Assert.Contains("OrderSystem.Desktop", solution);
-        Assert.Contains(@"OrderSystem.Desktop\OrderSystem.Desktop.csproj", solution);
+        Assert.Contains(@"src\OrderSystem.Desktop\OrderSystem.Desktop.csproj", solution);
     }
 
     [Fact]
@@ -127,6 +127,6 @@ public sealed class DesktopBootstrapTests
             .First(line => line.StartsWith("Project(", StringComparison.Ordinal));
 
         Assert.Contains("OrderSystem.Desktop", firstProjectLine);
-        Assert.Contains(@"OrderSystem.Desktop\OrderSystem.Desktop.csproj", firstProjectLine);
+        Assert.Contains(@"src\OrderSystem.Desktop\OrderSystem.Desktop.csproj", firstProjectLine);
     }
 }

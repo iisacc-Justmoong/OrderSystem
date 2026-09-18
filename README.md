@@ -110,3 +110,7 @@ dotnet build OrderSystem.sln
 ```
 
 `/Users/ymy/.dotnet`에 .NET 9 런타임만 있는 상태에서 기존 `net8.0` 앱 호스트가 exit code 150으로 종료되면, 위 Rider 번들 SDK로 다시 빌드한다. 재빌드된 `runtimeconfig.json`에는 `rollForward: Major`가 포함되어 .NET 9 호스트에서도 로컬 실행이 가능하다.
+
+## Source layout
+
+Application and library projects live under `src/`; automated test projects live under `tests/`. Build configuration stays at the root, and all build output belongs under `build/`.
