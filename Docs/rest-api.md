@@ -70,6 +70,8 @@ GET    /api/reports/daily-sales
 - `409 Conflict`: 현재 상태상 처리할 수 없거나 업무 키가 중복된다. 예를 들어 배송된 주문 취소, 허용되지 않은 상태 전이, 고객 이메일 중복, 상품 SKU 중복이 여기에 해당한다.
 - `500 Server Error`: 처리하지 못한 서버 내부 오류다.
 
-## Swagger
+<a id="swagger"></a>
+
+## 스웨거
 
 Swagger 문서는 `/swagger/v1/swagger.json`, Swagger UI는 `/swagger`에서 제공한다. 면접 시에는 Swagger UI에서 상품 등록, 고객 등록, 주문 생성, 재고 조회, 주문 취소를 순서대로 호출하면 주문 처리 백엔드의 핵심 흐름을 빠르게 시연할 수 있다.

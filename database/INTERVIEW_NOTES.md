@@ -1,4 +1,6 @@
-# Database Interview Notes
+<a id="database-interview-notes"></a>
+
+# 데이터베이스 인터뷰 노트
 
 ## 기본 설명
 

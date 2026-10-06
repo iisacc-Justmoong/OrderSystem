@@ -1,8 +1,10 @@
 # Retail Order System
 
-소매 주문 처리 업무 흐름을 검증하기 위한 ASP.NET Core Web API 프로젝트다. 쇼핑몰 화면보다 주문 생성, 재고 차감, 상태 전이, 결제 장부, 취소 시 재고 복구 같은 업무 데이터 정합성에 초점을 둔다.
+ASP . NET  Core Web  API  project to verify the sleeve order processing workflow. It focuses on order data integrity such as order creation, inventory deduction, status transition, payment ledger, and inventory restoration upon cancellation, rather than the shopping mall screen.
 
-## 기술 구성
+<a id="기술-구성"></a>
+
+## Technical configuration
 
 - ASP.NET Core Web API
 - Avalonia desktop shell
@@ -10,68 +12,74 @@
 - SQL Server setup scripts
 - SQLite
 - Swagger
-- xUnit 기반 서비스 및 REST API 통합 테스트
+- xUnit Base services and REST API integration tests
 
-빌드 산출물과 중간 산출물은 저장소 루트의 `build/` 아래에 생성되도록 `Directory.Build.props`에서 고정한다.
-프로젝트의 대상 프레임워크는 `net8.0`이다. 다만 로컬 `.dotnet` 경로에 .NET 9 런타임만 설치된 환경에서도 `build/bin/Debug/net8.0/`의 앱 호스트를 직접 실행할 수 있도록 런타임 롤포워드는 `Major`로 둔다.
+Build artifacts and intermediate artifacts are fixed to be created under `build/` at the repository root in `Directory.Build.props`. The target framework of the project is `net8.0`. However, runtime forwarders are set to `Major` so that the app host of `build/bin/Debug/net8.0/` can be executed directly even in environments where only . NET 9 runtime is installed at the local `.dotnet` path.
 
-## 핵심 도메인
+<a id="핵심-도메인"></a>
 
-- `Product`: SKU, 이름, 설명, 현재 가격, 판매 여부를 가진 상품 마스터다.
-- `Customer`: 주문을 생성하는 고객이다.
-- `Inventory`: 상품별 현재 재고 수량이다.
-- `InventoryTransaction`: 입고, 주문 차감, 취소 복구 같은 재고 변동 이력이다.
-- `Order`: 고객, 상태, 총액, 생성/수정 시각을 가진 주문 단위다.
-- `OrderItem`: 주문 시점의 상품, 수량, 단가, 줄 합계를 보존하는 주문 행이다.
-- `OrderStatusHistory`: 주문 상태가 언제, 어떤 상태에서 어떤 상태로 바뀌었는지 남기는 이력이다.
-- `Payment`: 주문과 분리된 결제 방법, 결제 상태, 결제 금액 장부다.
+## Core domain
 
-`OrderItem.UnitPrice`는 현재 상품 가격이 아니라 주문 생성 시점의 가격 스냅샷이다. 상품 가격이 이후 변경되어도 과거 주문 금액은 바뀌지 않는다.
+- `Product`: Product master with SKU, name, description, current price, and whether it is sold.
+- `Customer`: Customer who creates orders.
+- `Inventory`: Current inventory quantity per product.
+- `InventoryTransaction`: Inventory change history such as receipt, order deduction, and cancellation recovery.
+- `Order`: Order unit with customer, status, total amount, and creation/modification time.
+- `OrderItem`: Order line that preserves product, quantity, unit price, and sub-total at the time of order.
+- `OrderStatusHistory`: History that records when and from what status the order status changed to what status.
+- `Payment`: Ledger of payment methods, payment status, and payment amount separate from the order.
 
-## 주문 규칙
+`OrderItem.UnitPrice` is a price snapshot at the time of order creation, not the current product price. Even if the product price is changed later, the past order amount does not change.
 
-주문 생성은 고객 존재 여부, 상품 활성 상태, 재고 수량을 검증한 뒤 처리한다. 주문 생성, 주문 항목 저장, 재고 차감, 재고 이력 저장, 주문 상태 이력 저장은 하나의 DB 트랜잭션 안에서 실행한다.
+<a id="주문-규칙"></a>
 
-고객 이메일은 앞뒤 공백 제거 후 소문자로 저장하며 중복 이메일은 `409 Conflict`로 거절한다. 상품 SKU, 이름, 설명은 앞뒤 공백을 제거해 저장하며 중복 SKU 역시 `409 Conflict`로 거절한다. 이 계약은 SQLite 개발 실행과 SQL Server 증거 스크립트 양쪽에서 DB 고유 제약 예외가 API 밖으로 새지 않도록 둔 경계다.
+## Order Rule
 
-상태 전이는 다음 흐름만 허용한다.
+Order creation processes after verifying customer existence, product active status, and inventory quantity. Order creation, order item storage, inventory deduction, inventory history storage, and order status history storage are executed within a single DB transaction.
+
+Customer email is stored in lowercase after removing leading and trailing spaces, and duplicate emails are rejected with `409 Conflict`. Product SKU, name, and description are stored after removing leading and trailing spaces, and duplicate SKU is also rejected with `409 Conflict`. This contract is a boundary set to prevent DB unique constraint exceptions from leaking outside API during SQLite development execution and SQL Server evidence scripts.
+
+State transitions allow only the following flows.
 
 ```text
 Pending -> Confirmed -> Preparing -> Shipped -> Delivered
 ```
 
-취소는 `Pending`, `Confirmed` 상태에서만 허용한다. 취소가 성공하면 주문 상태를 `Cancelled`로 변경하고 주문 항목 수량만큼 재고를 복구한다. 이때 `InventoryTransactions`에는 양수 복구 이력을, `OrderStatusHistories`에는 취소 상태 전이를 남긴다.
+Cancellation is allowed only in `Pending` and `Confirmed` states. If cancellation succeeds, the order status is changed to `Cancelled` and inventory is restored by the quantity of order items. At this time, a positive restoration history is recorded in `InventoryTransactions`, and a cancellation state transition is recorded in `OrderStatusHistories`.
 
-재고 차감은 `Quantity >= 주문수량` 조건을 포함한 업데이트로 처리한다. 동시에 두 주문이 들어와도 재고 부족 시 업데이트 행 수가 0이 되므로 과판매를 막을 수 있다.
+Inventory deduction is processed as an update including the `Quantity >= order quantity` condition. Even if two orders come in, the number of update rows becomes 0 when inventory is insufficient, thus preventing overselling.
 
-## 주요 API
+<a id="주요-api"></a>
 
-- `GET /api/products`: 상품 목록 조회
-- `POST /api/products`: 상품 및 초기 재고 등록
-- `GET /api/products/{id}`: 상품 단건 조회
-- `PUT /api/products/{id}`: 상품 정보 수정
-- `POST /api/customers`: 고객 등록
-- `GET /api/customers/{id}`: 고객 단건 조회
-- `GET /api/inventory`: 재고 목록 조회
-- `GET /api/inventory/{productId}`: 상품별 재고 조회
-- `POST /api/inventory/{productId}/adjust`: 수동 재고 조정
-- `GET /api/orders`: 주문 목록 조회, `status`, `from`, `to` 쿼리 지원
-- `GET /api/orders/{id}`: 주문 단건 조회
-- `POST /api/orders`: 주문 생성
-- `PATCH /api/orders/{id}/status`: 주문 상태 변경
-- `POST /api/orders/{id}/cancel`: 주문 취소
-- `GET /api/orders/{id}/payments`: 주문 결제 목록 조회
-- `POST /api/orders/{id}/payments`: 주문 결제 장부 기록
-- `GET /api/reports/daily-sales?from=2026-05-01&to=2026-05-29`: 일별 매출 조회
+## Key API
 
-SQL Server 기준 DB 재현 스크립트는 [database/README.md](database/README.md)에 정리되어 있다. `01_schema.sql`, `02_sample-data.sql`, `03_procedures.sql`, `04_reports.sql` 순서로 실행하면 테이블, 시연 데이터, 저장 프로시저, 리포트 쿼리를 확인할 수 있다. 면접 설명용 답변은 [database/INTERVIEW_NOTES.md](database/INTERVIEW_NOTES.md)에 정리했다. 애플리케이션은 로컬 실행 편의를 위해 SQLite를 사용하지만, SQL 산출물은 면접 시연용 SQL Server 기준으로 둔다.
+- `GET /api/products`: Product list retrieval
+- `POST /api/products`: Product and initial inventory registration
+- `GET /api/products/{id}`: Single product retrieval
+- `PUT /api/products/{id}`: Product information update
+- `POST /api/customers`: Customer registration
+- `GET /api/customers/{id}`: Single customer retrieval
+- `GET /api/inventory`: Inventory list retrieval
+- `GET /api/inventory/{productId}`: Inventory retrieval by product
+- `POST /api/inventory/{productId}/adjust` : Manual Inventory Adjustment
+- `GET /api/orders` : Order List Retrieval, `status`, `from`, `to` Query Support
+- `GET /api/orders/{id}` : Single Order Retrieval
+- `POST /api/orders` : Order Creation
+- `PATCH /api/orders/{id}/status` : Order Status Change
+- `POST /api/orders/{id}/cancel` : Order Cancellation
+- `GET /api/orders/{id}/payments` : Order Payment List Retrieval
+- `POST /api/orders/{id}/payments` : Order Payment Ledger Recording
+- `GET /api/reports/daily-sales?from=2026-05-01&to=2026-05-29` : Daily Sales Retrieval
 
-REST API 세부 계약은 [Docs/rest-api.md](Docs/rest-api.md)에 정리되어 있다. 서버 실행 후 Swagger UI는 `/swagger`에서 확인한다.
+SQL Server-based DB reproduction scripts are organized in [database/README.md](database/README.md). Executing in the order of `01_schema.sql`, `02_sample-data.sql`, `03_procedures.sql`, `04_reports.sql` allows checking tables, demonstration data, stored procedures, and report queries. Interview explanation answers are organized in [database/INTERVIEW_NOTES.md](database/INTERVIEW_NOTES.md). The application uses SQLite for local execution convenience, but SQL outputs are kept as SQL Server-based for interview demonstrations.
 
-Avalonia GUI 준비 내용은 [Docs/gui.md](Docs/gui.md)에 정리되어 있다. `OrderSystem.Desktop`은 REST API와 연결할 데스크톱 셸, 메인 윈도우, ViewModel 구조를 포함한다. 현재 GUI는 API를 직접 찍어 보는 화면이 아니라 가상 상품 카탈로그, 장바구니, 체크아웃, 쇼핑 콘솔 로그를 가진 미니 쇼핑몰 흐름을 제공한다.
-솔루션의 첫 프로젝트는 `OrderSystem.Desktop`으로 배치해 기본 실행 진입점 후보가 GUI 앱이 되도록 했다.
+REST API detailed contracts are organized in [Docs/rest-api.md](Docs/rest-api.md). After server execution, Swagger UI is checked at `/swagger`.
 
-## 주문 생성 예시
+Avalonia GUI preparation content is organized in [Docs/gui.md](Docs/gui.md). `OrderSystem.Desktop` includes a desktop shell, main window, and ViewModel structure to connect with REST API. The current GUI provides a mini shopping mall flow with a virtual product catalog, shopping cart, checkout, and shopping console logs, rather than a screen to directly inspect the API. The first project of the solution is placed in `OrderSystem.Desktop` so that the default execution entry point candidate becomes the GUI app.
+
+<a id="주문-생성-예시"></a>
+
+## Order creation example
 
 ```json
 {
@@ -89,11 +97,13 @@ Avalonia GUI 준비 내용은 [Docs/gui.md](Docs/gui.md)에 정리되어 있다.
 }
 ```
 
-서버는 클라이언트가 보낸 가격을 사용하지 않고 DB에 저장된 상품 가격으로 `UnitPrice`, `LineTotal`, `TotalAmount`를 계산한다.
+The server does not use the price sent by the client but calculates `UnitPrice`, `LineTotal`, and `TotalAmount` using the product price stored in the DB.
 
-## 검증 명령
+<a id="검증-명령"></a>
 
-로컬 PATH에 .NET SDK가 있다면 다음 명령을 사용한다.
+## Validation command
+
+Use the following command if there is a .NET SDK in the local PATH.
 
 ```bash
 dotnet restore OrderSystem.sln
@@ -101,7 +111,7 @@ dotnet test OrderSystem.sln
 dotnet build OrderSystem.sln
 ```
 
-현재 개발 환경처럼 Rider 번들 SDK만 사용 가능한 경우에는 해당 `dotnet` 실행 파일을 직접 지정한다.
+If only the Rider bundle SDK is available in the current development environment, specify the corresponding `dotnet` executable directly.
 
 ```bash
 /Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet restore OrderSystem.sln
@@ -109,7 +119,7 @@ dotnet build OrderSystem.sln
 /Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet build OrderSystem.sln
 ```
 
-`/Users/ymy/.dotnet`에 .NET 9 런타임만 있는 상태에서 기존 `net8.0` 앱 호스트가 exit code 150으로 종료되면, 위 Rider 번들 SDK로 다시 빌드한다. 재빌드된 `runtimeconfig.json`에는 `rollForward: Major`가 포함되어 .NET 9 호스트에서도 로컬 실행이 가능하다.
+If only the .NET 9 runtime is present in `/Users/ymy/.dotnet` and the existing `net8.0` app host exits with exit code 150, rebuild using the Rider bundle SDK. The rebuilt `runtimeconfig.json` includes `rollForward: Major`, making local execution possible on .NET 9 hosts as well.
 
 ## Source layout
 

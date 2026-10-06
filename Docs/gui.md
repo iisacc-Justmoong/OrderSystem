@@ -1,4 +1,6 @@
-# Avalonia GUI
+<a id="avalonia-gui"></a>
+
+# 아발로니아 GUI
 
 `OrderSystem.Desktop`은 주문 시스템을 데스크톱에서 조작하기 위한 Avalonia 셸이다.
 
@@ -6,7 +8,9 @@
 
 `OrderSystem.Desktop`은 `OrderSystem.sln`의 첫 프로젝트로 배치되어 솔루션 순서에서 시작 프로젝트를 추론하는 IDE에서 GUI 실행 후보가 된다.
 
-## Project
+<a id="project"></a>
+
+## 프로젝트
 
 ```text
 OrderSystem.Desktop
@@ -19,7 +23,9 @@ OrderSystem.Desktop
     └── MainWindow.axaml
 ```
 
-## View
+<a id="view"></a>
+
+## 보기
 
 메인 윈도우는 세 작업 영역으로 나뉜다.
 
@@ -34,7 +40,9 @@ OrderSystem.Desktop
 - 고객명, 배송지, 결제수단을 확인한 뒤 주문을 생성한다.
 - 주문이 완료되면 재고가 차감되고 콘솔에 주문/결제/배송 로그가 남는다.
 
-## Run
+<a id="run"></a>
+
+## 실행
 
 현재 개발 환경은 Rider 번들 .NET SDK를 사용한다.
 
@@ -46,6 +54,8 @@ OrderSystem.Desktop
 
 현재 미니 쇼핑몰 상태는 데스크톱 ViewModel 안에서 동작한다. 이후 실제 REST API 클라이언트로 연결할 때도 UI는 같은 쇼핑 흐름을 유지하고, 내부 구현만 API 호출로 바꾸는 방향을 유지한다.
 
-## Verification
+<a id="verification"></a>
+
+## 검증
 
 테스트는 Avalonia 프로젝트가 솔루션에 등록되어 있는지, 상품 카탈로그가 충분히 제공되는지, 선택 상품과 수량이 장바구니에 반영되는지, 장바구니 수량 조정과 제거가 되는지, 고객/배송/결제 입력으로 주문과 콘솔 로그가 생성되는지 확인한다.
