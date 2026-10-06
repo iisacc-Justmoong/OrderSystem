@@ -123,7 +123,7 @@ public sealed class DesktopBootstrapTests
     {
         var solution = File.ReadAllText(Path.Combine(RepositoryRoot, "OrderSystem.sln"));
         var firstProjectLine = solution
-            .Split(Environment.NewLine)
+            .Split('\n')
             .First(line => line.StartsWith("Project(", StringComparison.Ordinal));
 
         Assert.Contains("OrderSystem.Desktop", firstProjectLine);
