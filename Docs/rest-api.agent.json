@@ -1,0 +1,388 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:ed2ea9a37469d44b81221f60afd9c2eb3d39312de173ba0fd2094ae322a3057b",
+  "project": {
+    "id": "urn:iisacc:project:Assets%2FProgram%2FOrderSystem%2FOrderSystem",
+    "name": "OrderSystem",
+    "root": "Assets/Program/OrderSystem/OrderSystem",
+    "kind": "design"
+  },
+  "source": {
+    "path": "Docs/rest-api.md",
+    "sha256": "22ca8527491b62337abe93268483024551f12197c63a7dd2642f7937fc424db6",
+    "bytes": 2738,
+    "line_count": 77,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "REST API 계약",
+    "role": "reference",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# REST API 계약\n",
+      "level": 1,
+      "title": "REST API 계약"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "REST API는 클라이언트와 Swagger가 주문 시스템을 조작하는 표준 출입구다. 외부 호출자는 DB를 직접 만지지 않고 HTTP 요청을 보내며, 컨트롤러는 DTO를 검증한 뒤 서비스에 업무 처리를 위임한다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "fenced_code",
+      "start_line": 5,
+      "end_line": 11,
+      "raw": "```text\nClient / Swagger\nREST API Controller\nService\nEntity Framework Core\nDatabase\n```\n",
+      "language": "text",
+      "code": "Client / Swagger\nREST API Controller\nService\nEntity Framework Core\nDatabase\n",
+      "closed": true
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "heading",
+      "start_line": 13,
+      "end_line": 13,
+      "raw": "## 엔드포인트\n",
+      "level": 2,
+      "title": "엔드포인트"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "fenced_code",
+      "start_line": 15,
+      "end_line": 37,
+      "raw": "```http\nGET    /api/products\nPOST   /api/products\nGET    /api/products/{id}\nPUT    /api/products/{id}\n\nPOST   /api/customers\nGET    /api/customers/{id}\n\nGET    /api/inventory\nGET    /api/inventory/{productId}\nPOST   /api/inventory/{productId}/adjust\n\nPOST   /api/orders\nGET    /api/orders/{id}\nGET    /api/orders\nPATCH  /api/orders/{id}/status\nPOST   /api/orders/{id}/cancel\nGET    /api/orders/{id}/payments\nPOST   /api/orders/{id}/payments\n\nGET    /api/reports/daily-sales\n```\n",
+      "language": "http",
+      "code": "GET    /api/products\nPOST   /api/products\nGET    /api/products/{id}\nPUT    /api/products/{id}\n\nPOST   /api/customers\nGET    /api/customers/{id}\n\nGET    /api/inventory\nGET    /api/inventory/{productId}\nPOST   /api/inventory/{productId}/adjust\n\nPOST   /api/orders\nGET    /api/orders/{id}\nGET    /api/orders\nPATCH  /api/orders/{id}/status\nPOST   /api/orders/{id}/cancel\nGET    /api/orders/{id}/payments\nPOST   /api/orders/{id}/payments\n\nGET    /api/reports/daily-sales\n",
+      "closed": true
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 38,
+      "end_line": 38,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "heading",
+      "start_line": 39,
+      "end_line": 39,
+      "raw": "## 주문 생성\n",
+      "level": 2,
+      "title": "주문 생성"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 40,
+      "end_line": 40,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 41,
+      "end_line": 41,
+      "raw": "`POST /api/orders`는 고객 확인, 상품 확인, 재고 조건부 차감, 주문 저장, 주문 항목 저장, 재고 이력 저장, 주문 상태 이력 저장을 하나의 트랜잭션으로 처리한다.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 42,
+      "end_line": 42,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "paragraph",
+      "start_line": 43,
+      "end_line": 43,
+      "raw": "요청 예시는 다음과 같다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "fenced_code",
+      "start_line": 45,
+      "end_line": 55,
+      "raw": "```json\n{\n  \"customerId\": 1,\n  \"items\": [\n    {\n      \"productId\": 10,\n      \"quantity\": 2\n    }\n  ]\n}\n```\n",
+      "language": "json",
+      "code": "{\n  \"customerId\": 1,\n  \"items\": [\n    {\n      \"productId\": 10,\n      \"quantity\": 2\n    }\n  ]\n}\n",
+      "closed": true
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 56,
+      "end_line": 56,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 57,
+      "end_line": 57,
+      "raw": "응답은 `orderId`, `orderNumber`, `status`, `totalAmount`, `items`를 반환한다. enum은 JSON에서 `\"Pending\"` 같은 문자열로 표시한다.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 58,
+      "end_line": 58,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "heading",
+      "start_line": 59,
+      "end_line": 59,
+      "raw": "## 입력 정규화\n",
+      "level": 2,
+      "title": "입력 정규화"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 60,
+      "end_line": 60,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 61,
+      "end_line": 61,
+      "raw": "컨트롤러는 외부 요청 문자열을 그대로 저장하지 않고 업무 키 기준으로 정규화한다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 62,
+      "end_line": 62,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "list",
+      "start_line": 63,
+      "end_line": 64,
+      "raw": "- `POST /api/customers`: `name`, `phone`은 앞뒤 공백을 제거하고 `email`은 앞뒤 공백 제거 후 소문자로 저장한다. 이미 같은 정규화 이메일이 있으면 `409 Conflict`를 반환한다.\n- `POST /api/products`, `PUT /api/products/{id}`: `sku`, `name`, `description`은 앞뒤 공백을 제거한다. 이미 같은 정규화 SKU가 있으면 `409 Conflict`를 반환한다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "`POST /api/customers`: `name`, `phone`은 앞뒤 공백을 제거하고 `email`은 앞뒤 공백 제거 후 소문자로 저장한다. 이미 같은 정규화 이메일이 있으면 `409 Conflict`를 반환한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`POST /api/products`, `PUT /api/products/{id}`: `sku`, `name`, `description`은 앞뒤 공백을 제거한다. 이미 같은 정규화 SKU가 있으면 `409 Conflict`를 반환한다.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 65,
+      "end_line": 65,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "heading",
+      "start_line": 66,
+      "end_line": 66,
+      "raw": "## 에러 응답\n",
+      "level": 2,
+      "title": "에러 응답"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 67,
+      "end_line": 67,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "list",
+      "start_line": 68,
+      "end_line": 71,
+      "raw": "- `400 Bad Request`: 요청 값이 잘못되었거나 재고가 부족하다.\n- `404 Not Found`: 상품, 고객, 주문, 재고 같은 리소스가 없다.\n- `409 Conflict`: 현재 상태상 처리할 수 없거나 업무 키가 중복된다. 예를 들어 배송된 주문 취소, 허용되지 않은 상태 전이, 고객 이메일 중복, 상품 SKU 중복이 여기에 해당한다.\n- `500 Server Error`: 처리하지 못한 서버 내부 오류다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "`400 Bad Request`: 요청 값이 잘못되었거나 재고가 부족하다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`404 Not Found`: 상품, 고객, 주문, 재고 같은 리소스가 없다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`409 Conflict`: 현재 상태상 처리할 수 없거나 업무 키가 중복된다. 예를 들어 배송된 주문 취소, 허용되지 않은 상태 전이, 고객 이메일 중복, 상품 SKU 중복이 여기에 해당한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`500 Server Error`: 처리하지 못한 서버 내부 오류다.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 72,
+      "end_line": 72,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "html",
+      "start_line": 73,
+      "end_line": 73,
+      "raw": "<a id=\"swagger\"></a>\n"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 74,
+      "end_line": 74,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "heading",
+      "start_line": 75,
+      "end_line": 75,
+      "raw": "## 스웨거\n",
+      "level": 2,
+      "title": "스웨거"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 76,
+      "end_line": 76,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "paragraph",
+      "start_line": 77,
+      "end_line": 77,
+      "raw": "Swagger 문서는 `/swagger/v1/swagger.json`, Swagger UI는 `/swagger`에서 제공한다. 면접 시에는 Swagger UI에서 상품 등록, 고객 등록, 주문 생성, 재고 조회, 주문 취소를 순서대로 호출하면 주문 처리 백엔드의 핵심 흐름을 빠르게 시연할 수 있다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "REST API 계약",
+      "anchor": "rest-api-계약",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000007",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "엔드포인트",
+      "anchor": "엔드포인트",
+      "start_line": 13
+    },
+    {
+      "block_id": "b000011",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "주문 생성",
+      "anchor": "주문-생성",
+      "start_line": 39
+    },
+    {
+      "block_id": "b000021",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "입력 정규화",
+      "anchor": "입력-정규화",
+      "start_line": 59
+    },
+    {
+      "block_id": "b000027",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "에러 응답",
+      "anchor": "에러-응답",
+      "start_line": 66
+    },
+    {
+      "block_id": "b000033",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "스웨거",
+      "anchor": "스웨거",
+      "start_line": 75
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

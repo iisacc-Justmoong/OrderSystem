@@ -1,0 +1,90 @@
+{
+  "format": "iisacc.agent-document-index",
+  "schema_version": 1,
+  "project": {
+    "id": "urn:iisacc:project:Assets%2FProgram%2FOrderSystem%2FOrderSystem",
+    "name": "OrderSystem",
+    "root": "Assets/Program/OrderSystem/OrderSystem",
+    "kind": "design"
+  },
+  "documentation_root": "Docs",
+  "agent_schema": "Docs/agent-document.schema.json",
+  "documents": [
+    {
+      "document_id": "urn:iisacc:document:59a582a50799d83803aaffea9e7b85acca16f7a867abe770a377eaacacdb861c",
+      "source": "AGENT.md",
+      "agent_json": "Docs/entrypoints/AGENT.agent.json",
+      "source_sha256": "ef0d668fa3d30bc449cb14c9afa820849ba7aa80ad577b03934b37244cac209c",
+      "role": "instructions"
+    },
+    {
+      "document_id": "urn:iisacc:document:71d4bbdf72b0f00e463177b7d55de186b10945637eb0d9a966faf497a3d122cf",
+      "source": "Docs/README.md",
+      "agent_json": "Docs/README.agent.json",
+      "source_sha256": "c8c3d41206172061b703016ae18ddd7b44561479fa4af3e4a1419bcae187b6b4",
+      "role": "overview"
+    },
+    {
+      "document_id": "urn:iisacc:document:c02239af4c6189340a6dc612f42186e57078f319ddf5d5e83023fa8698060b8b",
+      "source": "Docs/documentation-structure.md",
+      "agent_json": "Docs/documentation-structure.agent.json",
+      "source_sha256": "db755f9747f42e6e0700425af2a4bb3869d56bc95d6c95622a8f8da370e22542",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:129be18c64ab1fee8d2afc9ac335397292ce869be913e606450312e5ba0af420",
+      "source": "Docs/gui.md",
+      "agent_json": "Docs/gui.agent.json",
+      "source_sha256": "9af2c2801933e4a4df32c29eca02c4649c1eb212fbd08ea593c23a6338d8cdaf",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:bb348075c02c64467eeaa7884ada99a5e140510fcf8b1e6bfd8f323410af7a07",
+      "source": "Docs/order-workflow.md",
+      "agent_json": "Docs/order-workflow.agent.json",
+      "source_sha256": "6601a3388f6f45595d3cc17b3df2dbbc2f963abdd61abae1d2ae3dec6583884c",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:ed2ea9a37469d44b81221f60afd9c2eb3d39312de173ba0fd2094ae322a3057b",
+      "source": "Docs/rest-api.md",
+      "agent_json": "Docs/rest-api.agent.json",
+      "source_sha256": "22ca8527491b62337abe93268483024551f12197c63a7dd2642f7937fc424db6",
+      "role": "reference"
+    },
+    {
+      "document_id": "urn:iisacc:document:64900dc0205645ff8b618fe8fa51effa2ab3c8c9785319a110fb5f3bc688e881",
+      "source": "README.md",
+      "agent_json": "Docs/entrypoints/README.agent.json",
+      "source_sha256": "02b6f53d2184c64eb56ff3c44505a051e3dddf4df9570b126a38326d292167e7",
+      "role": "overview"
+    },
+    {
+      "document_id": "urn:iisacc:document:36c3467cc4c17b4107843cf68322fca56b7bcc789b64caf4643fd979c1d27f86",
+      "source": "database/INTERVIEW_NOTES.md",
+      "agent_json": "Docs/mirrors/database/INTERVIEW_NOTES.agent.json",
+      "source_sha256": "ca5f3e4fc4cf8e40d091b39b916e476391a7aac0303c2bd30ffdfa7f977ab92f",
+      "role": "guide"
+    },
+    {
+      "document_id": "urn:iisacc:document:93e283f6a670a14d80c7562fdbb07d328b614b41b31c067fa9120c615137fed5",
+      "source": "database/README.md",
+      "agent_json": "Docs/mirrors/database/README.agent.json",
+      "source_sha256": "c779ad7e1884e05b7a56292d6b5f031053fcd24a75d0e1ee781e48e1104466dc",
+      "role": "overview"
+    }
+  ],
+  "layout": {
+    "human_entry": "README.md",
+    "agent_entry": "AGENT.md",
+    "human_format": "markdown",
+    "agent_format": "structured_json",
+    "source_authority": "markdown"
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

@@ -1,0 +1,323 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:93e283f6a670a14d80c7562fdbb07d328b614b41b31c067fa9120c615137fed5",
+  "project": {
+    "id": "urn:iisacc:project:Assets%2FProgram%2FOrderSystem%2FOrderSystem",
+    "name": "OrderSystem",
+    "root": "Assets/Program/OrderSystem/OrderSystem",
+    "kind": "design"
+  },
+  "source": {
+    "path": "database/README.md",
+    "sha256": "c779ad7e1884e05b7a56292d6b5f031053fcd24a75d0e1ee781e48e1104466dc",
+    "bytes": 1331,
+    "line_count": 36,
+    "encoding": "utf-8",
+    "language": "en"
+  },
+  "document": {
+    "title": "Database Setup",
+    "role": "overview",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Database Setup\n",
+      "level": 1,
+      "title": "Database Setup"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "This database is designed for a retail online order management system on Microsoft SQL Server.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "heading",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "## Execution Order\n",
+      "level": 2,
+      "title": "Execution Order"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "Run the scripts in this order:\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "list",
+      "start_line": 9,
+      "end_line": 12,
+      "raw": "1. `01_schema.sql`\n2. `02_sample-data.sql`\n3. `03_procedures.sql`\n4. Use `04_reports.sql` for reporting queries\n",
+      "items": [
+        {
+          "marker": "1.",
+          "text": "`01_schema.sql`",
+          "checked": null
+        },
+        {
+          "marker": "2.",
+          "text": "`02_sample-data.sql`",
+          "checked": null
+        },
+        {
+          "marker": "3.",
+          "text": "`03_procedures.sql`",
+          "checked": null
+        },
+        {
+          "marker": "4.",
+          "text": "Use `04_reports.sql` for reporting queries",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 13,
+      "end_line": 13,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "The scripts are numbered so the database can be recreated from an empty SQL Server database without guessing the setup sequence.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 15,
+      "end_line": 15,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 16,
+      "end_line": 16,
+      "raw": "Interview explanation notes are available in `INTERVIEW_NOTES.md`.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 17,
+      "end_line": 17,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "heading",
+      "start_line": 18,
+      "end_line": 18,
+      "raw": "## Main Concepts\n",
+      "level": 2,
+      "title": "Main Concepts"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 19,
+      "end_line": 19,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "list",
+      "start_line": 20,
+      "end_line": 27,
+      "raw": "- Product and inventory management\n- Customer order management\n- Order item snapshot pricing\n- Inventory transaction history\n- Order status history\n- Payment ledger records\n- Transactional stored procedures\n- Sales and inventory reporting queries\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "Product and inventory management",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Customer order management",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Order item snapshot pricing",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Inventory transaction history",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Order status history",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Payment ledger records",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Transactional stored procedures",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Sales and inventory reporting queries",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "heading",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "## Demo Flow\n",
+      "level": 2,
+      "title": "Demo Flow"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "list",
+      "start_line": 31,
+      "end_line": 36,
+      "raw": "1. Run `01_schema.sql` to create tables, constraints, and indexes.\n2. Run `02_sample-data.sql` to seed customers, products, inventory, and initial stock history.\n3. Run `03_procedures.sql` to create stored procedures for inventory adjustment, order creation, and order cancellation.\n4. Execute `CreateOrder` with an `OrderItemRequest` table-valued parameter to create an order through SQL.\n5. Run queries from `04_reports.sql` to inspect sales, best-selling products, inventory, and customer order history.\n6. Use `INTERVIEW_NOTES.md` to explain the design in an interview.\n",
+      "items": [
+        {
+          "marker": "1.",
+          "text": "Run `01_schema.sql` to create tables, constraints, and indexes.",
+          "checked": null
+        },
+        {
+          "marker": "2.",
+          "text": "Run `02_sample-data.sql` to seed customers, products, inventory, and initial stock history.",
+          "checked": null
+        },
+        {
+          "marker": "3.",
+          "text": "Run `03_procedures.sql` to create stored procedures for inventory adjustment, order creation, and order cancellation.",
+          "checked": null
+        },
+        {
+          "marker": "4.",
+          "text": "Execute `CreateOrder` with an `OrderItemRequest` table-valued parameter to create an order through SQL.",
+          "checked": null
+        },
+        {
+          "marker": "5.",
+          "text": "Run queries from `04_reports.sql` to inspect sales, best-selling products, inventory, and customer order history.",
+          "checked": null
+        },
+        {
+          "marker": "6.",
+          "text": "Use `INTERVIEW_NOTES.md` to explain the design in an interview.",
+          "checked": null
+        }
+      ]
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Database Setup",
+      "anchor": "database-setup",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000005",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Execution Order",
+      "anchor": "execution-order",
+      "start_line": 5
+    },
+    {
+      "block_id": "b000015",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Main Concepts",
+      "anchor": "main-concepts",
+      "start_line": 18
+    },
+    {
+      "block_id": "b000019",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Demo Flow",
+      "anchor": "demo-flow",
+      "start_line": 29
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

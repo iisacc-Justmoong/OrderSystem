@@ -1,0 +1,397 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:bb348075c02c64467eeaa7884ada99a5e140510fcf8b1e6bfd8f323410af7a07",
+  "project": {
+    "id": "urn:iisacc:project:Assets%2FProgram%2FOrderSystem%2FOrderSystem",
+    "name": "OrderSystem",
+    "root": "Assets/Program/OrderSystem/OrderSystem",
+    "kind": "design"
+  },
+  "source": {
+    "path": "Docs/order-workflow.md",
+    "sha256": "6601a3388f6f45595d3cc17b3df2dbbc2f963abdd61abae1d2ae3dec6583884c",
+    "bytes": 2684,
+    "line_count": 45,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "주문 업무 흐름",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# 주문 업무 흐름\n",
+      "level": 1,
+      "title": "주문 업무 흐름"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "이 문서는 포트폴리오 설명에서 강조할 주문 처리 계약을 정리한다.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "heading",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "## 생성\n",
+      "level": 2,
+      "title": "생성"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "list",
+      "start_line": 7,
+      "end_line": 16,
+      "raw": "1. 고객이 존재해야 한다.\n2. 주문 항목은 하나 이상이어야 하며 수량은 1 이상이어야 한다.\n3. 상품은 존재하고 판매 가능한 상태여야 한다.\n4. 재고는 주문 수량 이상이어야 한다.\n5. 주문 총액은 서버 DB의 상품 가격으로 계산한다.\n6. 주문 번호를 생성하고 주문 및 주문 항목을 저장한다.\n7. 재고를 조건부 업데이트로 차감한다.\n8. `InventoryTransactions`에 음수 재고 변동을 기록한다.\n9. `OrderStatusHistories`에 최초 `Pending` 상태 이력을 기록한다.\n10. 전체 과정을 하나의 트랜잭션으로 저장한다.\n",
+      "items": [
+        {
+          "marker": "1.",
+          "text": "고객이 존재해야 한다.",
+          "checked": null
+        },
+        {
+          "marker": "2.",
+          "text": "주문 항목은 하나 이상이어야 하며 수량은 1 이상이어야 한다.",
+          "checked": null
+        },
+        {
+          "marker": "3.",
+          "text": "상품은 존재하고 판매 가능한 상태여야 한다.",
+          "checked": null
+        },
+        {
+          "marker": "4.",
+          "text": "재고는 주문 수량 이상이어야 한다.",
+          "checked": null
+        },
+        {
+          "marker": "5.",
+          "text": "주문 총액은 서버 DB의 상품 가격으로 계산한다.",
+          "checked": null
+        },
+        {
+          "marker": "6.",
+          "text": "주문 번호를 생성하고 주문 및 주문 항목을 저장한다.",
+          "checked": null
+        },
+        {
+          "marker": "7.",
+          "text": "재고를 조건부 업데이트로 차감한다.",
+          "checked": null
+        },
+        {
+          "marker": "8.",
+          "text": "`InventoryTransactions`에 음수 재고 변동을 기록한다.",
+          "checked": null
+        },
+        {
+          "marker": "9.",
+          "text": "`OrderStatusHistories`에 최초 `Pending` 상태 이력을 기록한다.",
+          "checked": null
+        },
+        {
+          "marker": "10.",
+          "text": "전체 과정을 하나의 트랜잭션으로 저장한다.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 17,
+      "end_line": 17,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "heading",
+      "start_line": 18,
+      "end_line": 18,
+      "raw": "## 상태 전이\n",
+      "level": 2,
+      "title": "상태 전이"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 19,
+      "end_line": 19,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 20,
+      "end_line": 20,
+      "raw": "허용 상태 전이는 `Pending -> Confirmed -> Preparing -> Shipped -> Delivered`이다. `Delivered`, `Cancelled`는 종료 상태다.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "heading",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "## 취소\n",
+      "level": 2,
+      "title": "취소"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 23,
+      "end_line": 23,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "paragraph",
+      "start_line": 24,
+      "end_line": 24,
+      "raw": "`Pending`, `Confirmed` 상태의 주문만 취소할 수 있다. 취소 시 주문 상태를 `Cancelled`로 변경하고 주문 항목 수량만큼 재고를 복구한다. 배송 이후 취소는 이 프로젝트 범위에서는 허용하지 않으며, 실제 업무에서는 반품 프로세스로 분리한다.\n"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "heading",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "## 결제\n",
+      "level": 2,
+      "title": "결제"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "결제는 주문과 분리된 `Payments` 장부에 저장한다. 실제 PG 연동은 하지 않지만 결제 수단, 결제 상태, 금액, 결제 완료 시각을 보존한다. 주문이 생성되었지만 결제가 실패하거나, 이후 환불 이력이 생길 수 있으므로 주문 헤더에 결제 정보를 직접 섞지 않는다.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "heading",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "## 테스트 기준\n",
+      "level": 2,
+      "title": "테스트 기준"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "서비스 테스트와 REST API 통합 테스트는 다음 회귀를 고정한다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "list",
+      "start_line": 34,
+      "end_line": 45,
+      "raw": "- 주문 생성 시 재고가 차감되고 주문 번호와 주문 시점 단가가 보존된다.\n- 주문 생성 시 재고 이력과 최초 주문 상태 이력이 기록된다.\n- 재고 부족 주문은 주문을 만들지 않고 재고도 바꾸지 않는다.\n- 취소 가능한 주문은 재고를 복구하고 복구 이력을 기록한다.\n- 배송된 주문은 취소할 수 없고 차감된 재고가 유지된다.\n- 허용되지 않은 상태 전이는 거부된다.\n- 상태 변경은 `OrderStatusHistories`에 남는다.\n- 결제 기록은 `Payments`에 주문과 분리해 저장된다.\n- 주문 상태 enum은 DB에 정수 코드로 저장된다.\n- Swagger 문서와 주요 REST 엔드포인트가 HTTP 경로로 동작한다.\n- 배송 후 취소와 잘못된 상태 전이는 `409 Conflict`로 응답한다.\n- SQL Server용 `database/` 스크립트 세트는 스키마, 샘플 데이터, 저장 프로시저, 리포트 쿼리를 실행 순서대로 제공한다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "주문 생성 시 재고가 차감되고 주문 번호와 주문 시점 단가가 보존된다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "주문 생성 시 재고 이력과 최초 주문 상태 이력이 기록된다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "재고 부족 주문은 주문을 만들지 않고 재고도 바꾸지 않는다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "취소 가능한 주문은 재고를 복구하고 복구 이력을 기록한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "배송된 주문은 취소할 수 없고 차감된 재고가 유지된다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "허용되지 않은 상태 전이는 거부된다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "상태 변경은 `OrderStatusHistories`에 남는다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "결제 기록은 `Payments`에 주문과 분리해 저장된다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "주문 상태 enum은 DB에 정수 코드로 저장된다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Swagger 문서와 주요 REST 엔드포인트가 HTTP 경로로 동작한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "배송 후 취소와 잘못된 상태 전이는 `409 Conflict`로 응답한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "SQL Server용 `database/` 스크립트 세트는 스키마, 샘플 데이터, 저장 프로시저, 리포트 쿼리를 실행 순서대로 제공한다.",
+          "checked": null
+        }
+      ]
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "주문 업무 흐름",
+      "anchor": "주문-업무-흐름",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000005",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "생성",
+      "anchor": "생성",
+      "start_line": 5
+    },
+    {
+      "block_id": "b000009",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "상태 전이",
+      "anchor": "상태-전이",
+      "start_line": 18
+    },
+    {
+      "block_id": "b000013",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "취소",
+      "anchor": "취소",
+      "start_line": 22
+    },
+    {
+      "block_id": "b000017",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "결제",
+      "anchor": "결제",
+      "start_line": 26
+    },
+    {
+      "block_id": "b000021",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "테스트 기준",
+      "anchor": "테스트-기준",
+      "start_line": 30
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000007",
+        "line": 7,
+        "text": "1. 고객이 존재해야 한다.",
+        "basis": "lexical_match",
+        "context": "list"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

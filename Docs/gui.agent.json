@@ -1,0 +1,456 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:129be18c64ab1fee8d2afc9ac335397292ce869be913e606450312e5ba0af420",
+  "project": {
+    "id": "urn:iisacc:project:Assets%2FProgram%2FOrderSystem%2FOrderSystem",
+    "name": "OrderSystem",
+    "root": "Assets/Program/OrderSystem/OrderSystem",
+    "kind": "design"
+  },
+  "source": {
+    "path": "Docs/gui.md",
+    "sha256": "9af2c2801933e4a4df32c29eca02c4649c1eb212fbd08ea593c23a6338d8cdaf",
+    "bytes": 2949,
+    "line_count": 61,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "아발로니아 GUI",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "html",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "<a id=\"avalonia-gui\"></a>\n"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "heading",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "# 아발로니아 GUI\n",
+      "level": 1,
+      "title": "아발로니아 GUI"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "paragraph",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "`OrderSystem.Desktop`은 주문 시스템을 데스크톱에서 조작하기 위한 Avalonia 셸이다.\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "현재 GUI는 API 요청 편집기가 아니라 작은 쇼핑몰 화면이다. 가상의 상품 카탈로그에서 상품과 수량을 고르고, 장바구니 수량을 조정한 뒤, 고객명·배송지·결제수단을 입력해 주문을 완료한다. 오른쪽 콘솔은 API 호출문 대신 쇼핑 중 발생한 장바구니, 결제, 배송 로그를 보여 준다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 9,
+      "raw": "`OrderSystem.Desktop`은 `OrderSystem.sln`의 첫 프로젝트로 배치되어 솔루션 순서에서 시작 프로젝트를 추론하는 IDE에서 GUI 실행 후보가 된다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 10,
+      "end_line": 10,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "html",
+      "start_line": 11,
+      "end_line": 11,
+      "raw": "<a id=\"project\"></a>\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "heading",
+      "start_line": 13,
+      "end_line": 13,
+      "raw": "## 프로젝트\n",
+      "level": 2,
+      "title": "프로젝트"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "fenced_code",
+      "start_line": 15,
+      "end_line": 24,
+      "raw": "```text\nOrderSystem.Desktop\n├── App.axaml\n├── Program.cs\n├── ViewModels\n│   ├── MainWindowViewModel.cs\n│   └── RelayCommand.cs\n└── Views\n    └── MainWindow.axaml\n```\n",
+      "language": "text",
+      "code": "OrderSystem.Desktop\n├── App.axaml\n├── Program.cs\n├── ViewModels\n│   ├── MainWindowViewModel.cs\n│   └── RelayCommand.cs\n└── Views\n    └── MainWindow.axaml\n",
+      "closed": true
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "html",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "<a id=\"view\"></a>\n"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "heading",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "## 보기\n",
+      "level": 2,
+      "title": "보기"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "paragraph",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "메인 윈도우는 세 작업 영역으로 나뉜다.\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "list",
+      "start_line": 32,
+      "end_line": 34,
+      "raw": "- Product Catalog: 티셔츠, 머그, 노트, 토트백, 램프, 비누 세트 같은 가상 상품을 고른다.\n- Shopping Cart / Checkout: 장바구니 수량을 조정하고 주문자, 배송지, 결제수단을 입력한다.\n- Shopping Console: 상품 담기, 장바구니 변경, 주문 생성, 결제 승인, 배송지 확정 로그를 보여 준다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "Product Catalog: 티셔츠, 머그, 노트, 토트백, 램프, 비누 세트 같은 가상 상품을 고른다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Shopping Cart / Checkout: 장바구니 수량을 조정하고 주문자, 배송지, 결제수단을 입력한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Shopping Console: 상품 담기, 장바구니 변경, 주문 생성, 결제 승인, 배송지 확정 로그를 보여 준다.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "paragraph",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "주요 흐름은 다음과 같다.\n"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 37,
+      "end_line": 37,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "list",
+      "start_line": 38,
+      "end_line": 41,
+      "raw": "- 상품 선택 후 수량을 정해 장바구니에 담는다.\n- 장바구니에서 선택한 항목의 수량을 늘리거나 줄이고, 항목을 제거한다.\n- 고객명, 배송지, 결제수단을 확인한 뒤 주문을 생성한다.\n- 주문이 완료되면 재고가 차감되고 콘솔에 주문/결제/배송 로그가 남는다.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "상품 선택 후 수량을 정해 장바구니에 담는다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "장바구니에서 선택한 항목의 수량을 늘리거나 줄이고, 항목을 제거한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "고객명, 배송지, 결제수단을 확인한 뒤 주문을 생성한다.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "주문이 완료되면 재고가 차감되고 콘솔에 주문/결제/배송 로그가 남는다.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 42,
+      "end_line": 42,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "html",
+      "start_line": 43,
+      "end_line": 43,
+      "raw": "<a id=\"run\"></a>\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "heading",
+      "start_line": 45,
+      "end_line": 45,
+      "raw": "## 실행\n",
+      "level": 2,
+      "title": "실행"
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 46,
+      "end_line": 46,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "paragraph",
+      "start_line": 47,
+      "end_line": 47,
+      "raw": "현재 개발 환경은 Rider 번들 .NET SDK를 사용한다.\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "fenced_code",
+      "start_line": 49,
+      "end_line": 51,
+      "raw": "```bash\n/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet run --project src/OrderSystem.Desktop/OrderSystem.Desktop.csproj\n```\n",
+      "language": "bash",
+      "code": "/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet run --project src/OrderSystem.Desktop/OrderSystem.Desktop.csproj\n",
+      "closed": true
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 52,
+      "end_line": 52,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "paragraph",
+      "start_line": 53,
+      "end_line": 53,
+      "raw": "프로젝트 대상 프레임워크는 `net8.0`이지만, `Directory.Build.props`에서 런타임 롤포워드를 `Major`로 설정한다. `build/`로 재빌드한 뒤에는 `/Users/ymy/.dotnet`에 .NET 8 런타임이 없어도 로컬 .NET 9 런타임으로 앱 호스트를 직접 실행할 수 있다.\n"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 54,
+      "end_line": 54,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "paragraph",
+      "start_line": 55,
+      "end_line": 55,
+      "raw": "현재 미니 쇼핑몰 상태는 데스크톱 ViewModel 안에서 동작한다. 이후 실제 REST API 클라이언트로 연결할 때도 UI는 같은 쇼핑 흐름을 유지하고, 내부 구현만 API 호출로 바꾸는 방향을 유지한다.\n"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 56,
+      "end_line": 56,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "html",
+      "start_line": 57,
+      "end_line": 57,
+      "raw": "<a id=\"verification\"></a>\n"
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 58,
+      "end_line": 58,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "heading",
+      "start_line": 59,
+      "end_line": 59,
+      "raw": "## 검증\n",
+      "level": 2,
+      "title": "검증"
+    },
+    {
+      "id": "b000044",
+      "kind": "blank",
+      "start_line": 60,
+      "end_line": 60,
+      "raw": "\n"
+    },
+    {
+      "id": "b000045",
+      "kind": "paragraph",
+      "start_line": 61,
+      "end_line": 61,
+      "raw": "테스트는 Avalonia 프로젝트가 솔루션에 등록되어 있는지, 상품 카탈로그가 충분히 제공되는지, 선택 상품과 수량이 장바구니에 반영되는지, 장바구니 수량 조정과 제거가 되는지, 고객/배송/결제 입력으로 주문과 콘솔 로그가 생성되는지 확인한다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000003",
+      "parent_id": null,
+      "level": 1,
+      "title": "아발로니아 GUI",
+      "anchor": "아발로니아-gui",
+      "start_line": 3
+    },
+    {
+      "block_id": "b000013",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "프로젝트",
+      "anchor": "프로젝트",
+      "start_line": 13
+    },
+    {
+      "block_id": "b000019",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "보기",
+      "anchor": "보기",
+      "start_line": 28
+    },
+    {
+      "block_id": "b000031",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "실행",
+      "anchor": "실행",
+      "start_line": 45
+    },
+    {
+      "block_id": "b000043",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "검증",
+      "anchor": "검증",
+      "start_line": 59
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [
+      {
+        "block_id": "b000035",
+        "language": "bash",
+        "code": "/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet run --project src/OrderSystem.Desktop/OrderSystem.Desktop.csproj\n"
+      }
+    ],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

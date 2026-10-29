@@ -1,0 +1,605 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:36c3467cc4c17b4107843cf68322fca56b7bcc789b64caf4643fd979c1d27f86",
+  "project": {
+    "id": "urn:iisacc:project:Assets%2FProgram%2FOrderSystem%2FOrderSystem",
+    "name": "OrderSystem",
+    "root": "Assets/Program/OrderSystem/OrderSystem",
+    "kind": "design"
+  },
+  "source": {
+    "path": "database/INTERVIEW_NOTES.md",
+    "sha256": "ca5f3e4fc4cf8e40d091b39b916e476391a7aac0303c2bd30ffdfa7f977ab92f",
+    "bytes": 4298,
+    "line_count": 83,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "데이터베이스 인터뷰 노트",
+    "role": "guide",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "html",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "<a id=\"database-interview-notes\"></a>\n"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "heading",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "# 데이터베이스 인터뷰 노트\n",
+      "level": 1,
+      "title": "데이터베이스 인터뷰 노트"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "heading",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "## 기본 설명\n",
+      "level": 2,
+      "title": "기본 설명"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "paragraph",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "이 데이터베이스는 온라인 주문 및 소매 관리 시스템을 가정하여 설계했다. 핵심 목표는 상품 관리, 주문 관리, 재고 관리, 그리고 매출 분석을 서로 분리하면서도 데이터 정합성을 유지하는 것이다.\n"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "paragraph",
+      "start_line": 9,
+      "end_line": 9,
+      "raw": "먼저 상품은 `Products` 테이블에서 관리한다. 여기에는 SKU, 상품명, 가격, 판매 여부 등의 마스터 데이터를 저장한다.\n"
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 10,
+      "end_line": 10,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 11,
+      "end_line": 11,
+      "raw": "고객은 `Customers` 테이블에서 관리한다.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 12,
+      "end_line": 12,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "paragraph",
+      "start_line": 13,
+      "end_line": 13,
+      "raw": "고객이 주문을 생성하면 `Orders` 테이블에 주문 헤더가 생성되고, 주문에 포함된 실제 상품 목록은 `OrderItems`에 저장된다.\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 14,
+      "end_line": 14,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "fenced_code",
+      "start_line": 15,
+      "end_line": 20,
+      "raw": "```text\nOrder\n|-- OrderItem\n|-- OrderItem\n|-- OrderItem\n```\n",
+      "language": "text",
+      "code": "Order\n|-- OrderItem\n|-- OrderItem\n|-- OrderItem\n",
+      "closed": true
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "paragraph",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "하나의 주문에는 여러 상품이 포함될 수 있기 때문에 Orders와 OrderItems를 1:N 관계로 설계했다. `Orders`는 주문 번호, 고객, 현재 상태, 총액 같은 헤더 정보를 저장하고, `OrderItems`는 상품, 수량, 주문 당시 단가, 줄 합계를 저장한다.\n"
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 23,
+      "end_line": 23,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "heading",
+      "start_line": 24,
+      "end_line": 24,
+      "raw": "## 가격 스냅샷\n",
+      "level": 2,
+      "title": "가격 스냅샷"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 25,
+      "end_line": 25,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "paragraph",
+      "start_line": 26,
+      "end_line": 26,
+      "raw": "주문 당시 가격을 보존하기 위해 `Products.Price`만 직접 참조하지 않고 OrderItems에 UnitPrice를 별도로 저장했다.\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 27,
+      "end_line": 27,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "paragraph",
+      "start_line": 28,
+      "end_line": 28,
+      "raw": "예를 들어 오늘 티셔츠 가격이 29,000원이었는데 다음 달에 35,000원으로 변경되더라도 과거 주문 금액은 변경되면 안 되기 때문이다. 따라서 `Products.Price`는 현재 판매 가격이고, `OrderItems.UnitPrice`는 주문 당시 확정 가격이다.\n"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 29,
+      "end_line": 29,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "heading",
+      "start_line": 30,
+      "end_line": 30,
+      "raw": "## 재고 설계\n",
+      "level": 2,
+      "title": "재고 설계"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "재고는 `Inventory` 테이블에서 현재 수량만 관리한다.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "하지만 현재 수량만 저장하면 왜 그 수량이 되었는지 추적할 수 없기 때문에 `InventoryTransactions` 테이블을 별도로 두었다.\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "fenced_code",
+      "start_line": 36,
+      "end_line": 41,
+      "raw": "```text\n+100 Initial Stock\n-2 Order\n-1 Order\n+2 Cancel\n```\n",
+      "language": "text",
+      "code": "+100 Initial Stock\n-2 Order\n-1 Order\n+2 Cancel\n",
+      "closed": true
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 42,
+      "end_line": 42,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "paragraph",
+      "start_line": 43,
+      "end_line": 43,
+      "raw": "이렇게 하면 현재 재고는 `Inventory`에서 빠르게 조회하고, 재고 변화의 원인은 `InventoryTransactions`에서 추적할 수 있다. 면접에서 왜 `InventoryTransactions`를 만들었는지 질문을 받으면, 재고 수량만 저장하면 원인을 추적할 수 없기 때문이라고 설명할 수 있다.\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 44,
+      "end_line": 44,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "heading",
+      "start_line": 45,
+      "end_line": 45,
+      "raw": "## 상태 이력\n",
+      "level": 2,
+      "title": "상태 이력"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 46,
+      "end_line": 46,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "paragraph",
+      "start_line": 47,
+      "end_line": 47,
+      "raw": "`Orders` 테이블에는 현재 상태만 저장한다.\n"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "paragraph",
+      "start_line": 49,
+      "end_line": 49,
+      "raw": "하지만 주문 상태가 어떻게 변경되었는지는 `OrderStatusHistories`에 별도로 저장한다.\n"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 50,
+      "end_line": 50,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "fenced_code",
+      "start_line": 51,
+      "end_line": 57,
+      "raw": "```text\nPending\n-> Confirmed\n-> Preparing\n-> Shipped\n-> Delivered\n```\n",
+      "language": "text",
+      "code": "Pending\n-> Confirmed\n-> Preparing\n-> Shipped\n-> Delivered\n",
+      "closed": true
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 58,
+      "end_line": 58,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 59,
+      "end_line": 59,
+      "raw": "이 구조를 통해 주문이 언제 배송 준비로 바뀌었는지, 언제 배송되었는지, 취소가 있었다면 어떤 상태에서 취소되었는지를 추적할 수 있다.\n"
+    },
+    {
+      "id": "b000044",
+      "kind": "blank",
+      "start_line": 60,
+      "end_line": 60,
+      "raw": "\n"
+    },
+    {
+      "id": "b000045",
+      "kind": "heading",
+      "start_line": 61,
+      "end_line": 61,
+      "raw": "## 트랜잭션 정합성\n",
+      "level": 2,
+      "title": "트랜잭션 정합성"
+    },
+    {
+      "id": "b000046",
+      "kind": "blank",
+      "start_line": 62,
+      "end_line": 62,
+      "raw": "\n"
+    },
+    {
+      "id": "b000047",
+      "kind": "paragraph",
+      "start_line": 63,
+      "end_line": 63,
+      "raw": "주문 생성은 트랜잭션으로 처리한다.\n"
+    },
+    {
+      "id": "b000048",
+      "kind": "blank",
+      "start_line": 64,
+      "end_line": 64,
+      "raw": "\n"
+    },
+    {
+      "id": "b000049",
+      "kind": "paragraph",
+      "start_line": 65,
+      "end_line": 65,
+      "raw": "주문 생성 시 다음 작업을 하나의 트랜잭션으로 처리한다.\n"
+    },
+    {
+      "id": "b000050",
+      "kind": "blank",
+      "start_line": 66,
+      "end_line": 66,
+      "raw": "\n"
+    },
+    {
+      "id": "b000051",
+      "kind": "list",
+      "start_line": 67,
+      "end_line": 71,
+      "raw": "1. `Orders` 생성\n2. `OrderItems` 생성\n3. `Inventory` 차감\n4. `InventoryTransactions` 기록\n5. `OrderStatusHistories` 기록\n",
+      "items": [
+        {
+          "marker": "1.",
+          "text": "`Orders` 생성",
+          "checked": null
+        },
+        {
+          "marker": "2.",
+          "text": "`OrderItems` 생성",
+          "checked": null
+        },
+        {
+          "marker": "3.",
+          "text": "`Inventory` 차감",
+          "checked": null
+        },
+        {
+          "marker": "4.",
+          "text": "`InventoryTransactions` 기록",
+          "checked": null
+        },
+        {
+          "marker": "5.",
+          "text": "`OrderStatusHistories` 기록",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000052",
+      "kind": "blank",
+      "start_line": 72,
+      "end_line": 72,
+      "raw": "\n"
+    },
+    {
+      "id": "b000053",
+      "kind": "paragraph",
+      "start_line": 73,
+      "end_line": 73,
+      "raw": "중간에 하나라도 실패하면 전체를 롤백하도록 설계했다. 예를 들어 주문은 생성되었는데 재고 차감이 실패하거나, 재고는 차감되었는데 주문 항목 저장이 실패하면 데이터가 서로 모순된다. 따라서 주문 생성과 취소는 모두 트랜잭션 안에서 처리해야 한다.\n"
+    },
+    {
+      "id": "b000054",
+      "kind": "blank",
+      "start_line": 74,
+      "end_line": 74,
+      "raw": "\n"
+    },
+    {
+      "id": "b000055",
+      "kind": "heading",
+      "start_line": 75,
+      "end_line": 75,
+      "raw": "## 인덱스\n",
+      "level": 2,
+      "title": "인덱스"
+    },
+    {
+      "id": "b000056",
+      "kind": "blank",
+      "start_line": 76,
+      "end_line": 76,
+      "raw": "\n"
+    },
+    {
+      "id": "b000057",
+      "kind": "paragraph",
+      "start_line": 77,
+      "end_line": 77,
+      "raw": "주문 목록은 고객, 상태, 날짜 기준으로 자주 조회되므로 `Orders` 테이블의 CustomerId, Status, CreatedAt 컬럼에 인덱스를 생성했다.\n"
+    },
+    {
+      "id": "b000058",
+      "kind": "blank",
+      "start_line": 78,
+      "end_line": 78,
+      "raw": "\n"
+    },
+    {
+      "id": "b000059",
+      "kind": "paragraph",
+      "start_line": 79,
+      "end_line": 79,
+      "raw": "또한 `OrderItems`는 주문 상세 조회 시 자주 사용되므로 `OrderId` 인덱스를 추가했다. 재고 이력은 상품별 추적이 중요하므로 `InventoryTransactions.ProductId`에도 인덱스를 두었다.\n"
+    },
+    {
+      "id": "b000060",
+      "kind": "blank",
+      "start_line": 80,
+      "end_line": 80,
+      "raw": "\n"
+    },
+    {
+      "id": "b000061",
+      "kind": "heading",
+      "start_line": 81,
+      "end_line": 81,
+      "raw": "## 1분 답변\n",
+      "level": 2,
+      "title": "1분 답변"
+    },
+    {
+      "id": "b000062",
+      "kind": "blank",
+      "start_line": 82,
+      "end_line": 82,
+      "raw": "\n"
+    },
+    {
+      "id": "b000063",
+      "kind": "paragraph",
+      "start_line": 83,
+      "end_line": 83,
+      "raw": "이 DB는 상품, 고객, 주문, 재고를 중심으로 설계했다. `Orders`와 `OrderItems`를 분리하여 주문 헤더와 상세 항목을 관리했고, 주문 당시 가격을 보존하기 위해 `OrderItems`에 `UnitPrice`를 저장했다. 재고는 현재 수량을 관리하는 `Inventory`와 변경 이력을 관리하는 `InventoryTransactions`로 분리했다. 또한 주문 상태 변경 추적을 위해 `OrderStatusHistories`를 두었다. 주문 생성과 취소는 모두 DB 트랜잭션으로 처리하여 주문 데이터와 재고 데이터의 정합성을 보장하도록 설계했다.\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000003",
+      "parent_id": null,
+      "level": 1,
+      "title": "데이터베이스 인터뷰 노트",
+      "anchor": "데이터베이스-인터뷰-노트",
+      "start_line": 3
+    },
+    {
+      "block_id": "b000005",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "기본 설명",
+      "anchor": "기본-설명",
+      "start_line": 5
+    },
+    {
+      "block_id": "b000019",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "가격 스냅샷",
+      "anchor": "가격-스냅샷",
+      "start_line": 24
+    },
+    {
+      "block_id": "b000025",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "재고 설계",
+      "anchor": "재고-설계",
+      "start_line": 30
+    },
+    {
+      "block_id": "b000035",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "상태 이력",
+      "anchor": "상태-이력",
+      "start_line": 45
+    },
+    {
+      "block_id": "b000045",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "트랜잭션 정합성",
+      "anchor": "트랜잭션-정합성",
+      "start_line": 61
+    },
+    {
+      "block_id": "b000055",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "인덱스",
+      "anchor": "인덱스",
+      "start_line": 75
+    },
+    {
+      "block_id": "b000061",
+      "parent_id": "b000003",
+      "level": 2,
+      "title": "1분 답변",
+      "anchor": "1분-답변",
+      "start_line": 81
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [
+      {
+        "block_id": "b000053",
+        "line": 73,
+        "text": "중간에 하나라도 실패하면 전체를 롤백하도록 설계했다. 예를 들어 주문은 생성되었는데 재고 차감이 실패하거나, 재고는 차감되었는데 주문 항목 저장이 실패하면 데이터가 서로 모순된다. 따라서 주문 생성과 취소는 모두 트랜잭션 안에서 처리해야 한다.",
+        "basis": "lexical_match",
+        "context": "paragraph"
+      }
+    ],
+    "commands": [],
+    "links": [],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}

@@ -1,0 +1,944 @@
+{
+  "format": "iisacc.agent-document",
+  "schema_version": 1,
+  "document_id": "urn:iisacc:document:64900dc0205645ff8b618fe8fa51effa2ab3c8c9785319a110fb5f3bc688e881",
+  "project": {
+    "id": "urn:iisacc:project:Assets%2FProgram%2FOrderSystem%2FOrderSystem",
+    "name": "OrderSystem",
+    "root": "Assets/Program/OrderSystem/OrderSystem",
+    "kind": "design"
+  },
+  "source": {
+    "path": "README.md",
+    "sha256": "02b6f53d2184c64eb56ff3c44505a051e3dddf4df9570b126a38326d292167e7",
+    "bytes": 7447,
+    "line_count": 135,
+    "encoding": "utf-8",
+    "language": "ko"
+  },
+  "document": {
+    "title": "Retail Order System",
+    "role": "overview",
+    "authority": "markdown_source"
+  },
+  "blocks": [
+    {
+      "id": "b000001",
+      "kind": "heading",
+      "start_line": 1,
+      "end_line": 1,
+      "raw": "# Retail Order System\n",
+      "level": 1,
+      "title": "Retail Order System"
+    },
+    {
+      "id": "b000002",
+      "kind": "blank",
+      "start_line": 2,
+      "end_line": 2,
+      "raw": "\n"
+    },
+    {
+      "id": "b000003",
+      "kind": "paragraph",
+      "start_line": 3,
+      "end_line": 3,
+      "raw": "ASP . NET  Core Web  API  project to verify the sleeve order processing workflow. It focuses on order data integrity such as order creation, inventory deduction, status transition, payment ledger, and inventory restoration upon cancellation, rather than the shopping mall screen.\n"
+    },
+    {
+      "id": "b000004",
+      "kind": "blank",
+      "start_line": 4,
+      "end_line": 4,
+      "raw": "\n"
+    },
+    {
+      "id": "b000005",
+      "kind": "html",
+      "start_line": 5,
+      "end_line": 5,
+      "raw": "<a id=\"기술-구성\"></a>\n"
+    },
+    {
+      "id": "b000006",
+      "kind": "blank",
+      "start_line": 6,
+      "end_line": 6,
+      "raw": "\n"
+    },
+    {
+      "id": "b000007",
+      "kind": "heading",
+      "start_line": 7,
+      "end_line": 7,
+      "raw": "## Technical configuration\n",
+      "level": 2,
+      "title": "Technical configuration"
+    },
+    {
+      "id": "b000008",
+      "kind": "blank",
+      "start_line": 8,
+      "end_line": 8,
+      "raw": "\n"
+    },
+    {
+      "id": "b000009",
+      "kind": "list",
+      "start_line": 9,
+      "end_line": 15,
+      "raw": "- ASP.NET Core Web API\n- Avalonia desktop shell\n- Entity Framework Core\n- SQL Server setup scripts\n- SQLite\n- Swagger\n- xUnit Base services and REST API integration tests\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "ASP.NET Core Web API",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Avalonia desktop shell",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Entity Framework Core",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "SQL Server setup scripts",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "SQLite",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Swagger",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "xUnit Base services and REST API integration tests",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000010",
+      "kind": "blank",
+      "start_line": 16,
+      "end_line": 16,
+      "raw": "\n"
+    },
+    {
+      "id": "b000011",
+      "kind": "paragraph",
+      "start_line": 17,
+      "end_line": 17,
+      "raw": "Build artifacts and intermediate artifacts are fixed to be created under `build/` at the repository root in `Directory.Build.props`. The target framework of the project is `net8.0`. However, runtime forwarders are set to `Major` so that the app host of `build/bin/Debug/net8.0/` can be executed directly even in environments where only . NET 9 runtime is installed at the local `.dotnet` path.\n"
+    },
+    {
+      "id": "b000012",
+      "kind": "blank",
+      "start_line": 18,
+      "end_line": 18,
+      "raw": "\n"
+    },
+    {
+      "id": "b000013",
+      "kind": "html",
+      "start_line": 19,
+      "end_line": 19,
+      "raw": "<a id=\"핵심-도메인\"></a>\n"
+    },
+    {
+      "id": "b000014",
+      "kind": "blank",
+      "start_line": 20,
+      "end_line": 20,
+      "raw": "\n"
+    },
+    {
+      "id": "b000015",
+      "kind": "heading",
+      "start_line": 21,
+      "end_line": 21,
+      "raw": "## Core domain\n",
+      "level": 2,
+      "title": "Core domain"
+    },
+    {
+      "id": "b000016",
+      "kind": "blank",
+      "start_line": 22,
+      "end_line": 22,
+      "raw": "\n"
+    },
+    {
+      "id": "b000017",
+      "kind": "list",
+      "start_line": 23,
+      "end_line": 30,
+      "raw": "- `Product`: Product master with SKU, name, description, current price, and whether it is sold.\n- `Customer`: Customer who creates orders.\n- `Inventory`: Current inventory quantity per product.\n- `InventoryTransaction`: Inventory change history such as receipt, order deduction, and cancellation recovery.\n- `Order`: Order unit with customer, status, total amount, and creation/modification time.\n- `OrderItem`: Order line that preserves product, quantity, unit price, and sub-total at the time of order.\n- `OrderStatusHistory`: History that records when and from what status the order status changed to what status.\n- `Payment`: Ledger of payment methods, payment status, and payment amount separate from the order.\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "`Product`: Product master with SKU, name, description, current price, and whether it is sold.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Customer`: Customer who creates orders.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Inventory`: Current inventory quantity per product.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`InventoryTransaction`: Inventory change history such as receipt, order deduction, and cancellation recovery.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Order`: Order unit with customer, status, total amount, and creation/modification time.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`OrderItem`: Order line that preserves product, quantity, unit price, and sub-total at the time of order.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`OrderStatusHistory`: History that records when and from what status the order status changed to what status.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`Payment`: Ledger of payment methods, payment status, and payment amount separate from the order.",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000018",
+      "kind": "blank",
+      "start_line": 31,
+      "end_line": 31,
+      "raw": "\n"
+    },
+    {
+      "id": "b000019",
+      "kind": "paragraph",
+      "start_line": 32,
+      "end_line": 32,
+      "raw": "`OrderItem.UnitPrice` is a price snapshot at the time of order creation, not the current product price. Even if the product price is changed later, the past order amount does not change.\n"
+    },
+    {
+      "id": "b000020",
+      "kind": "blank",
+      "start_line": 33,
+      "end_line": 33,
+      "raw": "\n"
+    },
+    {
+      "id": "b000021",
+      "kind": "html",
+      "start_line": 34,
+      "end_line": 34,
+      "raw": "<a id=\"주문-규칙\"></a>\n"
+    },
+    {
+      "id": "b000022",
+      "kind": "blank",
+      "start_line": 35,
+      "end_line": 35,
+      "raw": "\n"
+    },
+    {
+      "id": "b000023",
+      "kind": "heading",
+      "start_line": 36,
+      "end_line": 36,
+      "raw": "## Order Rule\n",
+      "level": 2,
+      "title": "Order Rule"
+    },
+    {
+      "id": "b000024",
+      "kind": "blank",
+      "start_line": 37,
+      "end_line": 37,
+      "raw": "\n"
+    },
+    {
+      "id": "b000025",
+      "kind": "paragraph",
+      "start_line": 38,
+      "end_line": 38,
+      "raw": "Order creation processes after verifying customer existence, product active status, and inventory quantity. Order creation, order item storage, inventory deduction, inventory history storage, and order status history storage are executed within a single DB transaction.\n"
+    },
+    {
+      "id": "b000026",
+      "kind": "blank",
+      "start_line": 39,
+      "end_line": 39,
+      "raw": "\n"
+    },
+    {
+      "id": "b000027",
+      "kind": "paragraph",
+      "start_line": 40,
+      "end_line": 40,
+      "raw": "Customer email is stored in lowercase after removing leading and trailing spaces, and duplicate emails are rejected with `409 Conflict`. Product SKU, name, and description are stored after removing leading and trailing spaces, and duplicate SKU is also rejected with `409 Conflict`. This contract is a boundary set to prevent DB unique constraint exceptions from leaking outside API during SQLite development execution and SQL Server evidence scripts.\n"
+    },
+    {
+      "id": "b000028",
+      "kind": "blank",
+      "start_line": 41,
+      "end_line": 41,
+      "raw": "\n"
+    },
+    {
+      "id": "b000029",
+      "kind": "paragraph",
+      "start_line": 42,
+      "end_line": 42,
+      "raw": "State transitions allow only the following flows.\n"
+    },
+    {
+      "id": "b000030",
+      "kind": "blank",
+      "start_line": 43,
+      "end_line": 43,
+      "raw": "\n"
+    },
+    {
+      "id": "b000031",
+      "kind": "fenced_code",
+      "start_line": 44,
+      "end_line": 46,
+      "raw": "```text\nPending -> Confirmed -> Preparing -> Shipped -> Delivered\n```\n",
+      "language": "text",
+      "code": "Pending -> Confirmed -> Preparing -> Shipped -> Delivered\n",
+      "closed": true
+    },
+    {
+      "id": "b000032",
+      "kind": "blank",
+      "start_line": 47,
+      "end_line": 47,
+      "raw": "\n"
+    },
+    {
+      "id": "b000033",
+      "kind": "paragraph",
+      "start_line": 48,
+      "end_line": 48,
+      "raw": "Cancellation is allowed only in `Pending` and `Confirmed` states. If cancellation succeeds, the order status is changed to `Cancelled` and inventory is restored by the quantity of order items. At this time, a positive restoration history is recorded in `InventoryTransactions`, and a cancellation state transition is recorded in `OrderStatusHistories`.\n"
+    },
+    {
+      "id": "b000034",
+      "kind": "blank",
+      "start_line": 49,
+      "end_line": 49,
+      "raw": "\n"
+    },
+    {
+      "id": "b000035",
+      "kind": "paragraph",
+      "start_line": 50,
+      "end_line": 50,
+      "raw": "Inventory deduction is processed as an update including the `Quantity >= order quantity` condition. Even if two orders come in, the number of update rows becomes 0 when inventory is insufficient, thus preventing overselling.\n"
+    },
+    {
+      "id": "b000036",
+      "kind": "blank",
+      "start_line": 51,
+      "end_line": 51,
+      "raw": "\n"
+    },
+    {
+      "id": "b000037",
+      "kind": "html",
+      "start_line": 52,
+      "end_line": 52,
+      "raw": "<a id=\"주요-api\"></a>\n"
+    },
+    {
+      "id": "b000038",
+      "kind": "blank",
+      "start_line": 53,
+      "end_line": 53,
+      "raw": "\n"
+    },
+    {
+      "id": "b000039",
+      "kind": "heading",
+      "start_line": 54,
+      "end_line": 54,
+      "raw": "## Key API\n",
+      "level": 2,
+      "title": "Key API"
+    },
+    {
+      "id": "b000040",
+      "kind": "blank",
+      "start_line": 55,
+      "end_line": 55,
+      "raw": "\n"
+    },
+    {
+      "id": "b000041",
+      "kind": "list",
+      "start_line": 56,
+      "end_line": 72,
+      "raw": "- `GET /api/products`: Product list retrieval\n- `POST /api/products`: Product and initial inventory registration\n- `GET /api/products/{id}`: Single product retrieval\n- `PUT /api/products/{id}`: Product information update\n- `POST /api/customers`: Customer registration\n- `GET /api/customers/{id}`: Single customer retrieval\n- `GET /api/inventory`: Inventory list retrieval\n- `GET /api/inventory/{productId}`: Inventory retrieval by product\n- `POST /api/inventory/{productId}/adjust` : Manual Inventory Adjustment\n- `GET /api/orders` : Order List Retrieval, `status`, `from`, `to` Query Support\n- `GET /api/orders/{id}` : Single Order Retrieval\n- `POST /api/orders` : Order Creation\n- `PATCH /api/orders/{id}/status` : Order Status Change\n- `POST /api/orders/{id}/cancel` : Order Cancellation\n- `GET /api/orders/{id}/payments` : Order Payment List Retrieval\n- `POST /api/orders/{id}/payments` : Order Payment Ledger Recording\n- `GET /api/reports/daily-sales?from=2026-05-01&to=2026-05-29` : Daily Sales Retrieval\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "`GET /api/products`: Product list retrieval",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`POST /api/products`: Product and initial inventory registration",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`GET /api/products/{id}`: Single product retrieval",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`PUT /api/products/{id}`: Product information update",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`POST /api/customers`: Customer registration",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`GET /api/customers/{id}`: Single customer retrieval",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`GET /api/inventory`: Inventory list retrieval",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`GET /api/inventory/{productId}`: Inventory retrieval by product",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`POST /api/inventory/{productId}/adjust` : Manual Inventory Adjustment",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`GET /api/orders` : Order List Retrieval, `status`, `from`, `to` Query Support",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`GET /api/orders/{id}` : Single Order Retrieval",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`POST /api/orders` : Order Creation",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`PATCH /api/orders/{id}/status` : Order Status Change",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`POST /api/orders/{id}/cancel` : Order Cancellation",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`GET /api/orders/{id}/payments` : Order Payment List Retrieval",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`POST /api/orders/{id}/payments` : Order Payment Ledger Recording",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "`GET /api/reports/daily-sales?from=2026-05-01&to=2026-05-29` : Daily Sales Retrieval",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000042",
+      "kind": "blank",
+      "start_line": 73,
+      "end_line": 73,
+      "raw": "\n"
+    },
+    {
+      "id": "b000043",
+      "kind": "paragraph",
+      "start_line": 74,
+      "end_line": 74,
+      "raw": "SQL Server-based DB reproduction scripts are organized in [database/README.md](database/README.md). Executing in the order of `01_schema.sql`, `02_sample-data.sql`, `03_procedures.sql`, `04_reports.sql` allows checking tables, demonstration data, stored procedures, and report queries. Interview explanation answers are organized in [database/INTERVIEW_NOTES.md](database/INTERVIEW_NOTES.md). The application uses SQLite for local execution convenience, but SQL outputs are kept as SQL Server-based for interview demonstrations.\n"
+    },
+    {
+      "id": "b000044",
+      "kind": "blank",
+      "start_line": 75,
+      "end_line": 75,
+      "raw": "\n"
+    },
+    {
+      "id": "b000045",
+      "kind": "paragraph",
+      "start_line": 76,
+      "end_line": 76,
+      "raw": "REST API detailed contracts are organized in [Docs/rest-api.md](Docs/rest-api.md). After server execution, Swagger UI is checked at `/swagger`.\n"
+    },
+    {
+      "id": "b000046",
+      "kind": "blank",
+      "start_line": 77,
+      "end_line": 77,
+      "raw": "\n"
+    },
+    {
+      "id": "b000047",
+      "kind": "paragraph",
+      "start_line": 78,
+      "end_line": 78,
+      "raw": "Avalonia GUI preparation content is organized in [Docs/gui.md](Docs/gui.md). `OrderSystem.Desktop` includes a desktop shell, main window, and ViewModel structure to connect with REST API. The current GUI provides a mini shopping mall flow with a virtual product catalog, shopping cart, checkout, and shopping console logs, rather than a screen to directly inspect the API. The first project of the solution is placed in `OrderSystem.Desktop` so that the default execution entry point candidate becomes the GUI app.\n"
+    },
+    {
+      "id": "b000048",
+      "kind": "blank",
+      "start_line": 79,
+      "end_line": 79,
+      "raw": "\n"
+    },
+    {
+      "id": "b000049",
+      "kind": "html",
+      "start_line": 80,
+      "end_line": 80,
+      "raw": "<a id=\"주문-생성-예시\"></a>\n"
+    },
+    {
+      "id": "b000050",
+      "kind": "blank",
+      "start_line": 81,
+      "end_line": 81,
+      "raw": "\n"
+    },
+    {
+      "id": "b000051",
+      "kind": "heading",
+      "start_line": 82,
+      "end_line": 82,
+      "raw": "## Order creation example\n",
+      "level": 2,
+      "title": "Order creation example"
+    },
+    {
+      "id": "b000052",
+      "kind": "blank",
+      "start_line": 83,
+      "end_line": 83,
+      "raw": "\n"
+    },
+    {
+      "id": "b000053",
+      "kind": "fenced_code",
+      "start_line": 84,
+      "end_line": 98,
+      "raw": "```json\n{\n  \"customerId\": 1,\n  \"items\": [\n    {\n      \"productId\": 10,\n      \"quantity\": 2\n    },\n    {\n      \"productId\": 15,\n      \"quantity\": 1\n    }\n  ]\n}\n```\n",
+      "language": "json",
+      "code": "{\n  \"customerId\": 1,\n  \"items\": [\n    {\n      \"productId\": 10,\n      \"quantity\": 2\n    },\n    {\n      \"productId\": 15,\n      \"quantity\": 1\n    }\n  ]\n}\n",
+      "closed": true
+    },
+    {
+      "id": "b000054",
+      "kind": "blank",
+      "start_line": 99,
+      "end_line": 99,
+      "raw": "\n"
+    },
+    {
+      "id": "b000055",
+      "kind": "paragraph",
+      "start_line": 100,
+      "end_line": 100,
+      "raw": "The server does not use the price sent by the client but calculates `UnitPrice`, `LineTotal`, and `TotalAmount` using the product price stored in the DB.\n"
+    },
+    {
+      "id": "b000056",
+      "kind": "blank",
+      "start_line": 101,
+      "end_line": 101,
+      "raw": "\n"
+    },
+    {
+      "id": "b000057",
+      "kind": "html",
+      "start_line": 102,
+      "end_line": 102,
+      "raw": "<a id=\"검증-명령\"></a>\n"
+    },
+    {
+      "id": "b000058",
+      "kind": "blank",
+      "start_line": 103,
+      "end_line": 103,
+      "raw": "\n"
+    },
+    {
+      "id": "b000059",
+      "kind": "heading",
+      "start_line": 104,
+      "end_line": 104,
+      "raw": "## Validation command\n",
+      "level": 2,
+      "title": "Validation command"
+    },
+    {
+      "id": "b000060",
+      "kind": "blank",
+      "start_line": 105,
+      "end_line": 105,
+      "raw": "\n"
+    },
+    {
+      "id": "b000061",
+      "kind": "paragraph",
+      "start_line": 106,
+      "end_line": 106,
+      "raw": "Use the following command if there is a .NET SDK in the local PATH.\n"
+    },
+    {
+      "id": "b000062",
+      "kind": "blank",
+      "start_line": 107,
+      "end_line": 107,
+      "raw": "\n"
+    },
+    {
+      "id": "b000063",
+      "kind": "fenced_code",
+      "start_line": 108,
+      "end_line": 112,
+      "raw": "```bash\ndotnet restore OrderSystem.sln\ndotnet test OrderSystem.sln\ndotnet build OrderSystem.sln\n```\n",
+      "language": "bash",
+      "code": "dotnet restore OrderSystem.sln\ndotnet test OrderSystem.sln\ndotnet build OrderSystem.sln\n",
+      "closed": true
+    },
+    {
+      "id": "b000064",
+      "kind": "blank",
+      "start_line": 113,
+      "end_line": 113,
+      "raw": "\n"
+    },
+    {
+      "id": "b000065",
+      "kind": "paragraph",
+      "start_line": 114,
+      "end_line": 114,
+      "raw": "If only the Rider bundle SDK is available in the current development environment, specify the corresponding `dotnet` executable directly.\n"
+    },
+    {
+      "id": "b000066",
+      "kind": "blank",
+      "start_line": 115,
+      "end_line": 115,
+      "raw": "\n"
+    },
+    {
+      "id": "b000067",
+      "kind": "fenced_code",
+      "start_line": 116,
+      "end_line": 120,
+      "raw": "```bash\n/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet restore OrderSystem.sln\n/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet test OrderSystem.sln\n/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet build OrderSystem.sln\n```\n",
+      "language": "bash",
+      "code": "/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet restore OrderSystem.sln\n/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet test OrderSystem.sln\n/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet build OrderSystem.sln\n",
+      "closed": true
+    },
+    {
+      "id": "b000068",
+      "kind": "blank",
+      "start_line": 121,
+      "end_line": 121,
+      "raw": "\n"
+    },
+    {
+      "id": "b000069",
+      "kind": "paragraph",
+      "start_line": 122,
+      "end_line": 122,
+      "raw": "If only the .NET 9 runtime is present in `/Users/ymy/.dotnet` and the existing `net8.0` app host exits with exit code 150, rebuild using the Rider bundle SDK. The rebuilt `runtimeconfig.json` includes `rollForward: Major`, making local execution possible on .NET 9 hosts as well.\n"
+    },
+    {
+      "id": "b000070",
+      "kind": "blank",
+      "start_line": 123,
+      "end_line": 123,
+      "raw": "\n"
+    },
+    {
+      "id": "b000071",
+      "kind": "heading",
+      "start_line": 124,
+      "end_line": 124,
+      "raw": "## Source layout\n",
+      "level": 2,
+      "title": "Source layout"
+    },
+    {
+      "id": "b000072",
+      "kind": "blank",
+      "start_line": 125,
+      "end_line": 125,
+      "raw": "\n"
+    },
+    {
+      "id": "b000073",
+      "kind": "paragraph",
+      "start_line": 126,
+      "end_line": 126,
+      "raw": "Application and library projects live under `src/`; automated test projects live under `tests/`. Build configuration stays at the root, and all build output belongs under `build/`.\n"
+    },
+    {
+      "id": "b000074",
+      "kind": "blank",
+      "start_line": 127,
+      "end_line": 127,
+      "raw": "\n"
+    },
+    {
+      "id": "b000075",
+      "kind": "html",
+      "start_line": 128,
+      "end_line": 128,
+      "raw": "<!-- workspace-docs:readme:start -->\n"
+    },
+    {
+      "id": "b000076",
+      "kind": "heading",
+      "start_line": 129,
+      "end_line": 129,
+      "raw": "## Documentation entry points\n",
+      "level": 2,
+      "title": "Documentation entry points"
+    },
+    {
+      "id": "b000077",
+      "kind": "blank",
+      "start_line": 130,
+      "end_line": 130,
+      "raw": "\n"
+    },
+    {
+      "id": "b000078",
+      "kind": "list",
+      "start_line": 131,
+      "end_line": 134,
+      "raw": "- Human overview: this English `README.md`.\n- Agent instructions: [AGENT.md](AGENT.md).\n- Human documentation: [documentation index](Docs/README.md).\n- Structured agent documentation: [agent index](Docs/agent-index.json).\n",
+      "items": [
+        {
+          "marker": "-",
+          "text": "Human overview: this English `README.md`.",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Agent instructions: [AGENT.md](AGENT.md).",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Human documentation: [documentation index](Docs/README.md).",
+          "checked": null
+        },
+        {
+          "marker": "-",
+          "text": "Structured agent documentation: [agent index](Docs/agent-index.json).",
+          "checked": null
+        }
+      ]
+    },
+    {
+      "id": "b000079",
+      "kind": "html",
+      "start_line": 135,
+      "end_line": 135,
+      "raw": "<!-- workspace-docs:readme:end -->\n"
+    }
+  ],
+  "outline": [
+    {
+      "block_id": "b000001",
+      "parent_id": null,
+      "level": 1,
+      "title": "Retail Order System",
+      "anchor": "retail-order-system",
+      "start_line": 1
+    },
+    {
+      "block_id": "b000007",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Technical configuration",
+      "anchor": "technical-configuration",
+      "start_line": 7
+    },
+    {
+      "block_id": "b000015",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Core domain",
+      "anchor": "core-domain",
+      "start_line": 21
+    },
+    {
+      "block_id": "b000023",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Order Rule",
+      "anchor": "order-rule",
+      "start_line": 36
+    },
+    {
+      "block_id": "b000039",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Key API",
+      "anchor": "key-api",
+      "start_line": 54
+    },
+    {
+      "block_id": "b000051",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Order creation example",
+      "anchor": "order-creation-example",
+      "start_line": 82
+    },
+    {
+      "block_id": "b000059",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Validation command",
+      "anchor": "validation-command",
+      "start_line": 104
+    },
+    {
+      "block_id": "b000071",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Source layout",
+      "anchor": "source-layout",
+      "start_line": 124
+    },
+    {
+      "block_id": "b000076",
+      "parent_id": "b000001",
+      "level": 2,
+      "title": "Documentation entry points",
+      "anchor": "documentation-entry-points",
+      "start_line": 129
+    }
+  ],
+  "indexes": {
+    "directive_candidates": [],
+    "commands": [
+      {
+        "block_id": "b000063",
+        "language": "bash",
+        "code": "dotnet restore OrderSystem.sln\ndotnet test OrderSystem.sln\ndotnet build OrderSystem.sln\n"
+      },
+      {
+        "block_id": "b000067",
+        "language": "bash",
+        "code": "/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet restore OrderSystem.sln\n/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet test OrderSystem.sln\n/Applications/Rider.app/Contents/lib/ReSharperHost/macos-arm64/dotnet/dotnet build OrderSystem.sln\n"
+      }
+    ],
+    "links": [
+      {
+        "block_id": "b000043",
+        "label": "database/README.md",
+        "target": "database/README.md",
+        "kind": "relative",
+        "line": 74
+      },
+      {
+        "block_id": "b000043",
+        "label": "database/INTERVIEW_NOTES.md",
+        "target": "database/INTERVIEW_NOTES.md",
+        "kind": "relative",
+        "line": 74
+      },
+      {
+        "block_id": "b000045",
+        "label": "Docs/rest-api.md",
+        "target": "Docs/rest-api.md",
+        "kind": "relative",
+        "line": 76
+      },
+      {
+        "block_id": "b000047",
+        "label": "Docs/gui.md",
+        "target": "Docs/gui.md",
+        "kind": "relative",
+        "line": 78
+      },
+      {
+        "block_id": "b000078",
+        "label": "AGENT.md",
+        "target": "AGENT.md",
+        "kind": "relative",
+        "line": 132
+      },
+      {
+        "block_id": "b000078",
+        "label": "documentation index",
+        "target": "Docs/README.md",
+        "kind": "relative",
+        "line": 133
+      },
+      {
+        "block_id": "b000078",
+        "label": "agent index",
+        "target": "Docs/agent-index.json",
+        "kind": "relative",
+        "line": 134
+      }
+    ],
+    "tables": []
+  },
+  "provenance": {
+    "generator": "workspace-docs",
+    "version": "1.0.0",
+    "profile": "lossless-blocks-v1",
+    "derived": true
+  }
+}
